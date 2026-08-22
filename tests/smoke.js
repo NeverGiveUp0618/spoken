@@ -46,8 +46,8 @@ function switchToScene() {
 console.log("[启动]");
 ok(errs.length === 0, "加载报错：" + errs.join(" | "));
 ok(q("#v-home .wrap").innerHTML.indexOf("今日五句") > 0, "首页没渲染出今日五句");
-ok(d.querySelectorAll(".gcard").length === 10, "首页分组卡数量不对：" + d.querySelectorAll(".gcard").length);
-ok(d.querySelectorAll("#v-home .gcard .ib svg use").length === 10, "分组卡没用 SVG 图标");
+ok(d.querySelectorAll(".gcard").length === 9, "首页分组卡数量不对：" + d.querySelectorAll(".gcard").length);
+ok(d.querySelectorAll("#v-home .gcard .ib svg use").length === 9, "分组卡没用 SVG 图标");
 ok(d.querySelectorAll(".tab").length === 5, "底栏不是 5 个 tab");
 
 console.log("[场景路径]");
@@ -107,8 +107,8 @@ step("全部收起", () => click(fa));
 ok(d.querySelectorAll("#v-pat .pcard.open").length === 0, "全部收起没生效");
 step("展开后仍能点词填空", () => { click(c0.querySelector(".foldhead")); click(c0.querySelector(".pfill")); });
 ok(c0.querySelector(".slot").classList.contains("filled"), "折叠卡展开后填空失效");
-step("进分组模板", () => click(d.querySelector('#v-pat .mrow[data-arg="sea"]')));
-ok(d.querySelectorAll("#v-pat .pcard").length === 16, "东南亚组模板数不对：" + d.querySelectorAll("#v-pat .pcard").length);
+step("进分组模板", () => click(d.querySelector('#v-pat .mrow[data-arg="travel"]')));
+ok(d.querySelectorAll("#v-pat .pcard").length === 16, "出行组模板数不对：" + d.querySelectorAll("#v-pat .pcard").length);
 ok(d.querySelectorAll("#v-pat .pcard.fold").length === 16, "分组模板页没折叠");
 step("返回", () => click(q("#back")));
 
