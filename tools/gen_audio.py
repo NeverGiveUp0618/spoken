@@ -40,6 +40,7 @@ const out=vm.runInContext(`(function(){
       if(l.reply&&/[a-zA-Z]/.test(l.reply)) l.reply.split(" / ").forEach(r=>s.add(r.trim()));
       if(l.alt) s.add(l.alt);
     });
+    (sc.dlg||[]).forEach(d=>s.add(d[1]));   // 微对话每一句都要能点读和连播
     (sc.pat||[]).forEach(p=>p.fills.forEach(f=>s.add(p.pat.replace("{}",f[0]))));
   });
   PATTERNS.forEach(p=>p.fills.forEach(f=>s.add(p.pat.replace("{}",f[0]))));

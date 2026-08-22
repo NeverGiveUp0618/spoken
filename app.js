@@ -23,6 +23,8 @@ SCENES.forEach(sc => sc.lines.forEach((l, i) => {
     key: "R:" + sc.id + "#" + i + "." + j
   }));
 }));
+const DLGS = [];   // 微对话：每场景一段完整往返
+SCENES.forEach(sc => { if (sc.dlg) DLGS.push({ sid: sc.id, sname: sc.name, sen: sc.en, group: sc.group, rows: sc.dlg, key: "D:" + sc.id }); });
 const TERMS = [];
 TERMSETS.forEach(t => t.terms.forEach((x, i) => TERMS.push(
   Object.assign({}, x, { tid: t.id, tname: t.name, key: "T:" + t.id + "#" + i })
@@ -299,6 +301,42 @@ document.addEventListener("click", e => {
   }
 });
 
+
+/* ========== 5c. 微对话 ========== */
+function dlgBlock(rows, sid) {
+  return '<div class="dlgbar"><button class="btn gh" data-dlgplay="' + sid + '">' + ic("play") +
+      "连播整段</button></div>" +
+    '<div class="dlg" id="dlg-' + sid + '">' + rows.map((r, i) =>
+      '<div class="bub ' + r[0] + '" data-di="' + i + '" data-say="' + esc(r[1]) + '">' +
+        '<div class="who">' + (r[0] === "y" ? "你" : "对方") + "</div>" +
+        '<div class="be">' + esc(r[1]) + "</div>" +
+        '<div class="bz">' + esc(r[2]) + "</div></div>").join("") + "</div>";
+}
+/* 整段连播：按句长估时依次念，当前句高亮 */
+let dlgTimer = null;
+document.addEventListener("click", e => {
+  const t = e.target.closest("[data-dlgplay]");
+  if (!t) return;
+  const box = document.getElementById("dlg-" + t.dataset.dlgplay);
+  if (!box) return;
+  clearTimeout(dlgTimer);
+  const bubs = [...box.querySelectorAll(".bub")];
+  bubs.forEach(b => b.classList.remove("playing"));
+  let i = 0;
+  const next = () => {
+    bubs.forEach(b => b.classList.remove("playing"));
+    if (i >= bubs.length) return;
+    const b = bubs[i];
+    b.classList.add("playing");
+    if (b.scrollIntoView) b.scrollIntoView({ block: "center", behavior: "smooth" });
+    say(b.dataset.say);
+    const words = b.dataset.say.split(/\s+/).length;
+    i++;
+    dlgTimer = setTimeout(next, Math.max(1600, words * 420));
+  };
+  next();
+});
+
 /* ========== 5b. 句子卡片 ========== */
 function lineCard(l, idx) {
   const fav = FAV[l.key] ? "on" : "";
@@ -424,7 +462,12 @@ PAGES.scene = function (box, sid) {
   PATS.filter(p => p.sid === sid).forEach(p => h += patCard(p, { fold: false }));
   h += '<div class="sec"><span class="t">现成的三句</span><span class="l"></span><span class="n">按频率排</span></div>';
   s.lines.forEach((l, i) => h += lineCard(Object.assign({}, l, { key: sid + "#" + i }), sid + i));
-  h += '<div class="btnrow"><button class="btn gh" data-go="drill-run" data-arg="fill:' + sid + '">' + ic("slot") + '练模板</button>' +
+  if (s.dlg) {
+    h += '<div class="sec"><span class="t">完整对话</span><span class="l"></span><span class="n">从头到尾走一遍</span></div>' +
+      dlgBlock(s.dlg, sid);
+  }
+  h += '<div class="btnrow"><button class="btn main" data-go="dlgrun" data-arg="' + sid + '">' + ic("mic") + "演练这段对话</button></div>" +
+    '<div class="btnrow"><button class="btn gh" data-go="drill-run" data-arg="fill:' + sid + '">' + ic("slot") + '练模板</button>' +
     '<button class="btn gh" data-go="drill-run" data-arg="quiz:' + sid + '">' + ic("pen") + "练句子</button></div>";
   box.innerHTML = h;
 };
@@ -499,6 +542,104 @@ PAGES.patgroup = function (box, gid) {
   box.innerHTML = h;
 };
 
+
+/* 对话演练：轮到你说时先给中文，说完翻开对答案；对方的话自动播 */
+
+PAGES.dlgpick = function (box) {
+  setTitle("对话演练", "ROLE PLAY");
+  let h = '<div class="hero"><h3>' + ic("chat") + "整段来回走一遍</h3>" +
+    "<p>单句会说，不等于接得上话。这里每个场景一段完整对话：对方的话自动播给你听，" +
+    "轮到你时先看中文自己说出来，再翻开对答案。</p></div>";
+  GROUPS.forEach(g => {
+    const list = DLGS.filter(d => d.group === g.id);
+    if (!list.length) return;
+    h += '<div class="sec"><span class="t">' + esc(g.name) + '</span><span class="l"></span><span class="n">' +
+      list.length + " 段</span></div>";
+    list.forEach(d => {
+      h += '<button class="mrow" data-go="dlgrun" data-arg="' + d.sid + '"><span class="ib">' + ic("chat", "sm") + "</span>" +
+        '<span class="tx"><div class="nm">' + esc(d.sname) + '</div><div class="ds">' + esc(d.sen) + "</div></span>" +
+        '<span class="vl">' + d.rows.length + " 句</span></button>";
+    });
+  });
+  box.innerHTML = h;
+};
+
+PAGES.dlgrun = function (box, sid) {
+  const sc = SCENE_OF[sid];
+  setTitle(sc.name + " · 演练", "ROLE PLAY");
+  const rows = sc.dlg;
+  let at = 0;
+  const state = [];   // 已走过的行
+
+  function draw() {
+    let h = '<div class="qbar"><div class="pg"><i style="width:' + (at / rows.length * 100) + '%"></i></div>' +
+      '<span class="nm">' + Math.min(at + 1, rows.length) + " / " + rows.length + "</span></div>" +
+      '<div class="dlg" id="rp">';
+    state.forEach(i => {
+      const r = rows[i];
+      h += '<div class="bub ' + r[0] + '" data-say="' + esc(r[1]) + '">' +
+        '<div class="who">' + (r[0] === "y" ? "你" : "对方") + "</div>" +
+        '<div class="be">' + esc(r[1]) + "</div>" +
+        '<div class="bz">' + esc(r[2]) + "</div></div>";
+    });
+    h += "</div>";
+    if (at >= rows.length) {
+      h += '<div class="fb on ok" style="text-align:center"><div class="t" style="justify-content:center">' +
+        ic("check", "sm") + "整段走完了</div>" +
+        '<div class="btnrow"><button class="btn gh" data-dlgplay2="1">' + ic("play") + "整段连播</button>" +
+        '<button class="btn main" id="again">' + ic("repeat") + "再来一遍</button></div></div>";
+    } else {
+      const r = rows[at];
+      if (r[0] === "y") {
+        h += '<div class="qbox" style="min-height:auto;padding:16px"><div class="qh">轮到你说</div>' +
+          '<div class="qz" style="font-size:19px">' + esc(r[2]) + "</div></div>" +
+          '<button class="btn main" id="flip" style="width:100%;padding:15px">' + ic("next") + "说完了，看答案</button>";
+      } else {
+        h += '<div class="qbox" style="min-height:auto;padding:16px"><div class="qh">对方在说……</div>' +
+          '<button class="btn main" id="go" style="margin-top:6px">' + ic("sound") + "听完了，继续</button></div>";
+      }
+    }
+    box.innerHTML = h;
+    const rp = box.querySelector("#rp");
+    if (rp && rp.lastElementChild && rp.lastElementChild.scrollIntoView)
+      rp.lastElementChild.scrollIntoView({ block: "nearest" });
+
+    const flip = box.querySelector("#flip");
+    if (flip) flip.onclick = () => {
+      const r = rows[at];
+      say(r[1]);
+      flip.outerHTML = '<div class="fb on ok"><div class="en" style="text-align:center;font-size:19px">' +
+        esc(r[1]) + "</div>" +
+        '<div class="btnrow" style="margin-top:10px"><button class="btn gh" data-say="' + esc(r[1]) + '">' +
+          ic("sound") + "再听</button>" +
+        '<button class="btn main" id="nx2">' + ic("next") + "下一句</button></div></div>";
+      box.querySelector("#nx2").onclick = () => { state.push(at); at++; draw(); };
+    };
+    const go = box.querySelector("#go");
+    if (go) {
+      say(rows[at][1]);
+      go.onclick = () => { state.push(at); at++; draw(); };
+    }
+    const ag = box.querySelector("#again");
+    if (ag) ag.onclick = () => { at = 0; state.length = 0; draw(); };
+    const p2 = box.querySelector("[data-dlgplay2]");
+    if (p2) p2.onclick = () => {
+      let i = 0;
+      const bubs = [...box.querySelectorAll("#rp .bub")];
+      const next = () => {
+        bubs.forEach(b => b.classList.remove("playing"));
+        if (i >= bubs.length) return;
+        bubs[i].classList.add("playing");
+        say(bubs[i].dataset.say);
+        const w = bubs[i].dataset.say.split(/\s+/).length; i++;
+        setTimeout(next, Math.max(1600, w * 420));
+      };
+      next();
+    };
+  }
+  draw();
+};
+
 /* ========== 7. 单词本 ========== */
 let TSEQ = 0;
 function termCard(t, opt) {
@@ -555,6 +696,9 @@ PAGES.drill = function (box) {
     ((LOG[today()] || {}).done || 0) + " 题已答，正确 " +
     ((LOG[today()] || {}).right || 0) + " 题。待复习 " + due + " 条。</p></div>";
   h += '<div class="sec"><span class="t">选个练法</span><span class="l"></span></div><div class="modes">';
+  h += '<button class="mode" data-go="dlgpick"><span class="ib">' + ic("chat", "lg") + "</span>" +
+    '<span class="tx"><div class="nm">对话演练 <span class="pill">' + DLGS.length + " 段</span></div>" +
+    '<div class="ds">整段来回走一遍：对方的话自动播，轮到你先自己说</div></span></button>';
   h += mode("", "mic", "秒答", "看中文，自己出声说，再翻答案对一遍。走路上也能练", "sayit");
   h += mode("w", "sound", "听懂对方", "只放声音不给字，听对方那句是什么意思", "listen");
   h += mode("", "slot", "模板填空", "给你模板和要表达的意思，选对的词填进空里", "fill");

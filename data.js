@@ -25,6 +25,15 @@ const SCENES = [
     fills:[["check in for my flight to Bangkok","办去曼谷的值机"],["check in","值机"],["check two bags","托运两件"],["change my seat","换座位"],["upgrade my seat","升舱"],["check in for the 3 p.m. flight","办下午三点那班"]] },
   { pat:"Could I get {}?", zh:"能给我{}吗？", slot:"想要的座位或服务", use:"提要求的软句式，被拒绝也不尴尬。",
     fills:[["an aisle seat","靠走道的座位"],["a window seat","靠窗的座位"],["two seats together","挨着的两个座"],["a seat near the front","靠前的位子"],["a fragile tag","易碎标签"],["a boarding pass for both legs","两段的登机牌"]] }
+], dlg:[
+  ["t","Good morning. Where are you flying today?","早上好，今天飞哪儿？"],
+  ["y","To Bangkok. I'd like to check in.","去曼谷。我想办值机。"],
+  ["t","Passport, please. Any bags to check?","请出示护照。有行李要托运吗？"],
+  ["y","Just one bag to check, and this is my carry-on.","托运一件，这个随身带。"],
+  ["t","Please put it on the scale. Window or aisle?","请放到秤上。靠窗还是靠走道？"],
+  ["y","Could I get an aisle seat, please?","能给我一个靠走道的座位吗？"],
+  ["t","Here is your boarding pass. Gate B12, boarding at 10:40.","这是登机牌。B12 登机口，10:40 登机。"],
+  ["y","Thank you.","谢谢。"]
 ], lines:[
   { en:"I'd like to check in for my flight to London.", zh:"我想办去伦敦这班的值机。", freq:3,
     tip:"走到柜台第一句，把目的地说出来最省事。递上护照就行。",
@@ -47,6 +56,13 @@ const SCENES = [
     fills:[["take out my laptop","把电脑拿出来"],["take off my shoes","脱鞋"],["take off my belt","解皮带"],["take out my liquids","把液体拿出来"],["empty my pockets","掏空口袋"],["remove my jacket","脱外套"]] },
   { pat:"Which gate is {}?", zh:"{}在哪个登机口？", slot:"要找的航班", use:"登机口常临时改，登机前再确认一次。",
     fills:[["the flight to Paris","去巴黎那班"],["flight CA123","CA123 航班"],["my connecting flight","我的转机航班"],["the Bangkok flight","飞曼谷那班"],["boarding now","现在登机的"]] }
+], dlg:[
+  ["t","Please put everything in the tray.","请把东西都放进筐里。"],
+  ["y","Do I need to take out my laptop?","电脑需要拿出来吗？"],
+  ["t","Yes, in a separate tray. Your shoes can stay on.","要，单独放一个筐。鞋不用脱。"],
+  ["y","Got it. Sorry, is this the line for boarding?","明白了。不好意思，这是登机排的队吗？"],
+  ["t","Yes, but they're boarding group 2 right now.","是的，不过现在在登第二组。"],
+  ["y","Okay, I'll wait. Thanks a lot.","好的，我等一下。多谢。"]
 ], lines:[
   { en:"Do I need to take out my laptop?", zh:"电脑需要拿出来吗？", freq:3,
     tip:"各国规矩不一样，问一句比被叫回去重过一遍强。",
@@ -69,6 +85,14 @@ const SCENES = [
     fills:[["some water","一杯水"],["a blanket","一条毯子"],["a pillow","一个枕头"],["another coffee","再来杯咖啡"],["a customs form","一张入境卡"],["some headphones","一副耳机"]] },
   { pat:"Would you mind if I {}?", zh:"我{}你介意吗？", slot:"想做的事", use:"⚠️ 回答是反的：No 才表示可以。",
     fills:[["put my seat back","把座椅放下来"],["switch seats with you","跟你换个座"],["close the window","关上遮光板"],["got past you","从你这儿过去"],["turned off the light","关掉阅读灯"]] }
+], dlg:[
+  ["y","Excuse me, I think that's my seat.","不好意思，那好像是我的座位。"],
+  ["t","Oh sorry! Let me move.","啊抱歉！我挪一下。"],
+  ["y","No worries, thanks.","没事，谢谢。"],
+  ["t","Anything to drink?","要喝点什么吗？"],
+  ["y","Could I have some water, please?","能给我一杯水吗？"],
+  ["t","Still or sparkling?","要普通水还是气泡水？"],
+  ["y","Still, thanks. And could I have a blanket?","普通水，谢谢。能再给条毯子吗？"]
 ], lines:[
   { en:"Excuse me, I think that's my seat.", zh:"不好意思，那好像是我的座位。", freq:3,
     tip:"I think 是缓冲，比直接说 that's my seat 客气很多。",
@@ -91,6 +115,15 @@ const SCENES = [
     fills:[["on vacation","度假"],["on business","出差"],["to visit family","探亲"],["for a conference","参加会议"],["just passing through","只是转机"],["for about ten days","待十天左右"]] },
   { pat:"I'm staying {}.", zh:"我住{}。", slot:"住处或时长", use:"必问项，提前把酒店名存手机里。",
     fills:[["at the Hilton downtown","市区希尔顿"],["with a friend","朋友家"],["for two weeks","两周"],["at an Airbnb in the old town","老城区的民宿"],["at my company's guesthouse","公司招待所"]] }
+], dlg:[
+  ["t","Next, please. Passport.","下一位。护照。"],
+  ["y","Here you go.","给您。"],
+  ["t","What's the purpose of your visit?","你来的目的是什么？"],
+  ["y","I'm here on vacation, for about ten days.","我来旅游，大概待十天。"],
+  ["t","Where are you staying?","你住在哪里？"],
+  ["y","I'm staying at the Hilton downtown.","我住在市区的希尔顿。"],
+  ["t","Anything to declare?","有需要申报的东西吗？"],
+  ["y","No, I have nothing to declare.","没有，我没有需要申报的东西。"]
 ], lines:[
   { en:"I'm here on vacation, for about ten days.", zh:"我来旅游，大概待十天。", freq:3,
     tip:"目的+时长一次说完，是海关最想听的答案。出差说 on business。",
@@ -113,6 +146,13 @@ const SCENES = [
     fills:[["this address","这个地址"],["the airport","机场"],["the train station","火车站"],["the old town","老城区"],["this hotel","这家酒店"],["the nearest ATM","最近的取款机"]] },
   { pat:"Could you {}?", zh:"能{}吗？", slot:"要司机做的事", use:"车上一切请求都套这句。",
     fills:[["wait here for ten minutes","在这儿等十分钟"],["drop me off here","在这儿放我下来"],["open the trunk","开一下后备箱"],["turn on the meter","打表"],["slow down a bit","开慢点"],["take the highway","走高速"]] }
+], dlg:[
+  ["y","Could you take me to this address, please?","麻烦送我到这个地址。"],
+  ["t","Sure, hop in. Just the one bag?","好的，上车吧。就一件行李？"],
+  ["y","Yes, thanks. How long does it usually take?","是的，谢谢。一般要开多久？"],
+  ["t","About twenty minutes, if traffic is okay.","大概二十分钟，不堵的话。"],
+  ["y","Great. You can just drop me off at the corner.","好。在路口放我下来就行。"],
+  ["t","Right here? Okay. That's fifteen fifty.","就这儿？行。一共十五块五。"]
 ], lines:[
   { en:"Could you take me to this address, please?", zh:"麻烦送我到这个地址。", freq:3,
     tip:"上车第一句。地名念不准就直接把手机屏幕给司机看，配这句最稳。",
@@ -135,6 +175,13 @@ const SCENES = [
     fills:[["Central Station","中央车站"],["the airport","机场"],["downtown","市中心"],["the old town","老城区"],["the ferry pier","轮渡码头"]] },
   { pat:"Where can I {}?", zh:"我在哪儿{}？", slot:"要做的事", use:"车站里找地方办事的通用句。",
     fills:[["buy a ticket","买票"],["catch the airport bus","坐机场大巴"],["transfer to line 2","换乘二号线"],["top up this card","给这张卡充值"],["find the platform","找到站台"]] }
+], dlg:[
+  ["y","Excuse me, does this go to Central Station?","打扰一下，这班车到中央车站吗？"],
+  ["t","Yeah, four stops.","对，四站。"],
+  ["y","Where can I buy a ticket?","在哪儿买票？"],
+  ["t","At the machine over there. A day pass is cheaper.","在那边的机器上。买日票更划算。"],
+  ["y","Good to know. Which stop should I get off at?","那挺好。我该在哪站下车？"],
+  ["t","Two more stops — I'll tell you.","还有两站，到了我叫你。"]
 ], lines:[
   { en:"Does this train go to Central Station?", zh:"这班车到中央车站吗？", freq:3,
     tip:"上车前问站台上的人，一句话避免坐反方向。",
@@ -157,6 +204,14 @@ const SCENES = [
     fills:[["the museum","博物馆"],["this address","这个地址"],["the nearest subway","最近的地铁站"],["the beach","海滩"],["the night market","夜市"],["the main square","中心广场"]] },
   { pat:"Is there a {} near here?", zh:"附近有{}吗？", slot:"想找的地方", use:"人生地不熟最高频的一句。",
     fills:[["pharmacy","药店"],["ATM","取款机"],["convenience store","便利店"],["good place to eat","好吃的地方"],["restroom","洗手间"],["place to sit down","能坐下歇脚的地方"]] }
+], dlg:[
+  ["y","Excuse me, how do I get to the museum?","打扰一下，博物馆怎么走？"],
+  ["t","Go straight and turn left at the lights.","直走，到红绿灯左转。"],
+  ["y","Is it walkable from here?","从这儿走过去远吗？"],
+  ["t","It's about ten minutes on foot.","走路大概十分钟。"],
+  ["y","Sorry, could you show me on the map?","不好意思，能在地图上指给我看吗？"],
+  ["t","Sure — we're here, and it's right there.","来，我们在这儿，它就在那边。"],
+  ["y","Thanks so much, I really appreciate it.","太感谢了，真的帮大忙了。"]
 ], lines:[
   { en:"Excuse me, how do I get to the museum?", zh:"打扰一下，博物馆怎么走？", freq:3,
     tip:"Excuse me 起手，再问路。别用 Hey。",
@@ -179,6 +234,13 @@ const SCENES = [
     fills:[["the name Chen","陈"],["Chen, C-H-E-N","陈，C-H-E-N"],["my company's name","公司名"],["this confirmation number","这个确认号"]] },
   { pat:"Is {} included?", zh:"含{}吗？", slot:"想确认的项目", use:"租车最容易被加价的地方，一定问清。",
     fills:[["insurance","保险"],["a second driver","第二驾驶员"],["unlimited mileage","不限里程"],["GPS","导航"],["a child seat","儿童座椅"],["roadside assistance","道路救援"]] }
+], dlg:[
+  ["y","Hi, I have a reservation under the name Chen.","你好，我有预订，姓陈。"],
+  ["t","Can I see your license and passport?","可以看一下你的驾照和护照吗？"],
+  ["y","Here they are. Is insurance included?","给您。保险包含在内吗？"],
+  ["t","Basic coverage is included, full is extra.","基本险含了，全险要另加钱。"],
+  ["y","Basic is fine. Do I need to return it with a full tank?","基本险就行。还车时需要加满油吗？"],
+  ["t","Yes, or we charge you for the fuel.","是的，不然我们要收你油费。"]
 ], lines:[
   { en:"I have a reservation under the name Chen.", zh:"我有预订，姓陈。", freq:3,
     tip:"under the name ... 是所有预订的通用句式，酒店餐厅都能用。",
@@ -203,6 +265,15 @@ const SCENES = [
     fills:[["two nights","两晚"],["tonight","今晚"],["three nights, under Chen","三晚，姓陈"],["a double room","一间大床房"],["two rooms","两间房"]] },
   { pat:"What time is {}?", zh:"{}是几点？", slot:"要问的时间", use:"注意：后面接名词用 is，接动作用 does。",
     fills:[["breakfast","早餐"],["check-out","退房"],["the last shuttle","末班接驳车"],["the pool open until","泳池开到"],["the front desk closed","前台关门"]] }
+], dlg:[
+  ["y","Hi, I have a reservation for two nights.","你好，我订了两晚。"],
+  ["t","Your name, please?","请问您贵姓？"],
+  ["y","Chen. C-H-E-N.","陈，C-H-E-N。"],
+  ["t","Found it. Passport, please. Here is your key card, room 512.","找到了。请出示护照。这是您的房卡，512 房。"],
+  ["y","Thanks. What time is breakfast, and where is it?","谢谢。早餐几点、在哪里？"],
+  ["t","Seven to ten, on the second floor.","七点到十点，在二楼。"],
+  ["y","And could I have a late check-out?","还有，能晚点退房吗？"],
+  ["t","We can do 1 p.m., no charge.","可以延到下午一点，不加钱。"]
 ], lines:[
   { en:"Hi, I have a reservation for two nights.", zh:"你好，我订了两晚。", freq:3,
     tip:"走到前台就说这句，然后递护照，流程自动往下走。",
@@ -225,6 +296,14 @@ const SCENES = [
     fills:[["some towels","几条毛巾"],["an extra pillow","多一个枕头"],["a toothbrush","一支牙刷"],["some drinking water","一些饮用水"],["an adapter","一个转换插头"],["a blanket","一条毯子"]] },
   { pat:"The {} isn't working.", zh:"{}坏了。", slot:"出问题的东西", use:"报修万能句型，换个词就是另一件事。",
     fills:[["air conditioning","空调"],["shower","淋浴"],["Wi-Fi","无线网"],["TV","电视"],["key card","房卡"],["hair dryer","吹风机"]] }
+], dlg:[
+  ["t","Front desk, how can I help?","前台，有什么可以帮您？"],
+  ["y","Hi, the air conditioning isn't working.","你好，空调坏了。"],
+  ["t","Sorry about that, I'll send someone up. Room number?","很抱歉，我这就派人上去。房间号是多少？"],
+  ["y","512. Could you also send up some towels?","512。能再送几条毛巾上来吗？"],
+  ["t","Of course. Anything else?","当然可以。还需要别的吗？"],
+  ["y","What's the Wi-Fi password?","Wi-Fi 密码是多少？"],
+  ["t","It's on the back of your key card.","在你房卡套的背面。"]
 ], lines:[
   { en:"Could you send up some towels, please?", zh:"能送几条毛巾上来吗？", freq:3,
     tip:"send up = 送到房间。换成 water / an extra pillow / a toothbrush 都行。",
@@ -247,6 +326,15 @@ const SCENES = [
     fills:[["leave my luggage here until 5","把行李寄存到五点"],["have a late check-out","晚点退房"],["get a receipt","要张发票"],["pay in cash","付现金"],["stay one more night","再住一晚"]] },
   { pat:"Could you call me {}?", zh:"能帮我叫{}吗？", slot:"要叫的车/人", use:"call sb sth = 帮某人叫某物。",
     fills:[["a taxi","一辆出租车"],["a taxi for 8 a.m.","早八点的车"],["the airport shuttle","机场班车"],["a car to the station","去车站的车"]] }
+], dlg:[
+  ["y","I'd like to check out, please.","我要退房。"],
+  ["t","Room number? How was your stay?","房间号？住得还满意吗？"],
+  ["y","512. It was great, thank you.","512。很好，谢谢。"],
+  ["t","Here is your receipt.","这是您的收据。"],
+  ["y","Could I leave my luggage here until the afternoon?","行李能寄存到下午吗？"],
+  ["t","Sure, here is your tag.","当然，这是您的行李牌。"],
+  ["y","Thanks. And could you call me a taxi?","谢谢。能帮我叫辆车吗？"],
+  ["t","It'll be here in five minutes.","车五分钟后到。"]
 ], lines:[
   { en:"I'd like to check out, please.", zh:"我要退房。", freq:3,
     tip:"最标准的退房开场，说完把房卡放柜台上。",
@@ -271,6 +359,14 @@ const SCENES = [
     fills:[["the steak","牛排"],["this one","这个"],["what he's having","跟他一样的"],["the special","今日特餐"],["the same again","再来一份一样的"],["just a starter","只要一份前菜"]] },
   { pat:"Could I have it {}?", zh:"能做成{}的吗？", slot:"做法或忌口", use:"改做法、去配料全靠这句。",
     fills:[["without onions","不要洋葱"],["medium rare","三分熟"],["not too spicy","别太辣"],["on the side","酱另外放"],["without ice","不加冰"],["to share","分着吃的份量"]] }
+], dlg:[
+  ["t","Are you ready to order?","可以点单了吗？"],
+  ["y","What do you recommend?","你推荐什么？"],
+  ["t","The salmon is really good today.","今天的三文鱼很不错。"],
+  ["y","I'll have the steak, actually.","那我还是要牛排吧。"],
+  ["t","How would you like it cooked?","您要几分熟？"],
+  ["y","Medium, please. And no onions — I'm allergic.","五分熟，谢谢。不要洋葱，我过敏。"],
+  ["t","I'll let the kitchen know.","我会转告厨房。"]
 ], lines:[
   { en:"I'll have the steak, please.", zh:"我要牛排，谢谢。", freq:3,
     tip:"点餐最地道的说法是 I'll have ...，比 I want 礼貌得多。指着菜单说 I'll have this one 也行。",
@@ -293,6 +389,14 @@ const SCENES = [
     fills:[["a large latte","大杯拿铁"],["an iced americano","冰美式"],["a flat white","馥芮白"],["a small drip coffee","小杯手冲"],["a decaf","低因咖啡"],["whatever you recommend","你推荐的"]] },
   { pat:"{}, please.", zh:"{}，谢谢。", slot:"补充要求", use:"点完补一句，短促自然。",
     fills:[["To go","带走"],["For here","堂食"],["Oat milk instead","换燕麦奶"],["Less ice","少冰"],["No sugar","不加糖"],["Extra hot","要烫一点"]] }
+], dlg:[
+  ["t","Hi, what can I get you?","你好，要点什么？"],
+  ["y","A large latte, please.","一杯大杯拿铁。"],
+  ["t","For here or to go?","堂食还是带走？"],
+  ["y","To go, please. Could I get oat milk instead?","带走，谢谢。能换成燕麦奶吗？"],
+  ["t","Sure, that's fifty cents extra. Anything else?","可以，要加五毛钱。还要别的吗？"],
+  ["y","That's everything, thanks.","就这些了，谢谢。"],
+  ["t","That will be five twenty.","一共五块二。"]
 ], lines:[
   { en:"A large latte, please.", zh:"一杯大杯拿铁。", freq:3,
     tip:"星巴克的 tall/grande/venti 只在星巴克用，别的店说 small/medium/large。",
@@ -315,6 +419,14 @@ const SCENES = [
     fills:[["a number three","三号套餐"],["a cheeseburger and fries","芝士汉堡加薯条"],["two of these","这个来两份"],["a kids' meal","儿童餐"],["it as a combo","做成套餐"]] },
   { pat:"That's {}, thanks.", zh:"{}，谢谢。", slot:"收尾", use:"对方问 Anything else? 时的收尾句。",
     fills:[["everything","就这些"],["it","就这些"],["all for now","暂时就这些"],["for here","堂食"],["to go","带走"]] }
+], dlg:[
+  ["t","Welcome, what would you like?","欢迎光临，您要点什么？"],
+  ["y","Can I get a number three, please?","我要三号套餐。"],
+  ["t","What drink would you like with that?","套餐配什么饮料？"],
+  ["y","A Coke, no ice.","可乐，不要冰。"],
+  ["t","Anything else?","还要别的吗？"],
+  ["y","That's everything, thanks. Could I have some ketchup?","就这些，谢谢。能给点番茄酱吗？"],
+  ["t","They're right over there. That's nine ninety.","就在那边。一共九块九。"]
 ], lines:[
   { en:"Can I get a number three, please?", zh:"我要三号套餐。", freq:3,
     tip:"快餐店直接报套餐号最快，number three = 三号餐。",
@@ -337,6 +449,14 @@ const SCENES = [
     fills:[["the check","账单"],["the bill","账单"],["separate checks","分开的账单"],["a receipt","收据"],["a box for this","一个打包盒"]] },
   { pat:"Can we {}?", zh:"我们能{}吗？", slot:"付款方式", use:"AA 制不说 AA，说 split it。",
     fills:[["pay separately","分开付"],["split it","平摊"],["pay by card","刷卡"],["split it three ways","三个人分"],["add the tip to the card","小费加卡上"]] }
+], dlg:[
+  ["y","Could we get the check, please?","麻烦买单。"],
+  ["t","Sure, I'll be right back.","好的，我马上拿来。"],
+  ["y","Is service included?","服务费包含了吗？"],
+  ["t","Yes, it's on the bill.","含了，账单上有。"],
+  ["y","Can we pay separately?","能分开付吗？"],
+  ["t","Of course — card or cash?","当然可以，刷卡还是现金？"],
+  ["y","Card, please.","刷卡，谢谢。"]
 ], lines:[
   { en:"Could we get the check, please?", zh:"麻烦买单。", freq:3,
     tip:"美式 check，英式 bill。也可以远远地对服务员做个写字手势。",
@@ -361,6 +481,14 @@ const SCENES = [
     fills:[["looking","随便看看"],["browsing","逛逛"],["having a look","看一下"],["waiting for a friend","等个朋友"]] },
   { pat:"Do you have this in {}?", zh:"这个有{}的吗？", slot:"颜色/尺码/材质", use:"把最后一个词换掉就是另一句。",
     fills:[["a different color","别的颜色"],["a medium","M 码"],["black","黑色"],["stock","现货"],["a smaller size","小一号"],["cotton","纯棉"]] }
+], dlg:[
+  ["t","Hi, can I help you find anything?","你好，需要帮忙找什么吗？"],
+  ["y","I'm just looking, thanks.","我先随便看看，谢谢。"],
+  ["t","No problem, let me know if you need anything.","没问题，需要帮忙叫我。"],
+  ["y","Actually — do you've this in a different color?","其实……这个有别的颜色吗？"],
+  ["t","Let me check in the back.","我去后面看看还有没有。"],
+  ["y","Thanks. How much is this one?","谢谢。这个多少钱？"],
+  ["t","It's twenty-nine ninety-nine.","二十九块九九。"]
 ], lines:[
   { en:"I'm just looking, thanks.", zh:"我先随便看看，谢谢。", freq:3,
     tip:"店员一上来问 Can I help you? 就用这句，礼貌打发，全世界通用。",
@@ -383,6 +511,14 @@ const SCENES = [
     fills:[["this","这个"],["these shoes","这双鞋"],["this in a large","大号的这件"],["both of these","这两件"],["that one in the window","橱窗里那件"]] },
   { pat:"It's a bit too {}.", zh:"有点太{}了。", slot:"形容词", use:"a bit 让否定听起来不生硬，店员会主动给你换。",
     fills:[["tight","紧"],["big","大"],["short","短"],["long","长"],["loose","松"],["heavy","厚重"]] }
+], dlg:[
+  ["y","Can I try this on?","我能试一下吗？"],
+  ["t","Sure, the fitting room is over there.","可以，试衣间在那边。"],
+  ["y","Thanks. Do you've this in a medium?","谢谢。这个有 M 码吗？"],
+  ["t","Let me look. Here you go.","我找找。给您。"],
+  ["y","It's a bit too tight. Could I size up?","有点紧，能换大一号吗？"],
+  ["t","I'll grab you a large.","我给你拿件大号的。"],
+  ["y","That's better, thank you.","这件好多了，谢谢。"]
 ], lines:[
   { en:"Can I try this on?", zh:"我能试一下吗？", freq:3,
     tip:"try on 专指试穿。试鞋也是这句。",
@@ -405,6 +541,14 @@ const SCENES = [
     fills:[["this one","这个"],["these","这些"],["both","两个都要"],["the black one","黑色那个"],["two of them","来两个"]] },
   { pat:"Do you take {}?", zh:"你们收{}吗？", slot:"支付方式", use:"东南亚小店常只收现金，进门先问。",
     fills:[["card","卡"],["Apple Pay","苹果支付"],["dollars","美元"],["cash only","只收现金吗"],["international cards","国际卡"]] }
+], dlg:[
+  ["y","I'll take this one.","我就要这个。"],
+  ["t","Great, I'll ring you up. Cash or card?","好的，我来给你结账。现金还是刷卡？"],
+  ["y","Card, please. Do you take Apple Pay?","刷卡。你们收 Apple Pay 吗？"],
+  ["t","We do. Tap or insert.","收的。感应或者插卡。"],
+  ["y","Could I have a bag, please?","能给个袋子吗？"],
+  ["t","Bags are five cents each.","袋子五分钱一个。"],
+  ["y","That's fine. Could I get a receipt?","没问题。能给张小票吗？"]
 ], lines:[
   { en:"I'll take this one.", zh:"我就要这个。", freq:3,
     tip:"决定买了就说这句，然后走向收银台。",
@@ -427,6 +571,15 @@ const SCENES = [
     fills:[["return","退掉"],["exchange","换"],["get a refund for","申请退款"],["exchange for a bigger size","换大一号"]] },
   { pat:"It {}.", zh:"它{}。", slot:"退货理由", use:"最省事的理由，对方一般不再追问。",
     fills:[["doesn't fit","尺码不合适"],["doesn't work","不能用"],["arrived damaged","到货就坏了"],["isn't what I ordered","不是我订的那个"],["stopped working after a week","用一周就坏了"]] }
+], dlg:[
+  ["y","I'd like to return this, please.","我想退掉这个。"],
+  ["t","Do you've the receipt?","你有小票吗？"],
+  ["y","Here it is. It doesn't fit.","在这儿。尺码不合适。"],
+  ["t","No problem, I'll process the refund.","没问题，我来给你办退款。"],
+  ["y","Can I get a refund instead of store credit?","能退钱而不是给购物卡吗？"],
+  ["t","Since you've the receipt, yes.","有小票就可以。"],
+  ["y","How long does the refund take?","退款要多久？"],
+  ["t","Three to five business days.","三到五个工作日。"]
 ], lines:[
   { en:"I'd like to return this, please.", zh:"我想退掉这个。", freq:3,
     tip:"带上小票 receipt。想换不想退就说 exchange。",
@@ -451,6 +604,14 @@ const SCENES = [
     fills:[["the milk","牛奶"],["the bread","面包"],["batteries","电池"],["the checkout","收银台"],["sunscreen","防晒霜"],["bottled water","瓶装水"]] },
   { pat:"{}, thanks.", zh:"{}，谢谢。", slot:"结账时的回答", use:"结账几句固定问答，提前备好答案。",
     fills:[["No bag","不用袋子"],["I brought my own bag","我自己带了袋子"],["Card","刷卡"],["No receipt","不用小票"],["I'll take a bag","要个袋子"]] }
+], dlg:[
+  ["y","Excuse me, where can I find the milk?","请问牛奶在哪儿？"],
+  ["t","Aisle six, on your right.","六号通道，在你右手边。"],
+  ["y","Thanks. Which aisle is the bread in?","谢谢。面包在哪个通道？"],
+  ["t","Same aisle, at the end.","同一个通道，最里面。"],
+  ["y","Sorry, I think this rang up wrong.","不好意思，这个好像扫错价了。"],
+  ["t","Let me check that for you. You're right, it's on sale.","我帮你查一下。你说得对，它在打折。"],
+  ["y","No bag, thanks.","不用袋子，谢谢。"]
 ], lines:[
   { en:"Excuse me, where can I find the milk?", zh:"请问牛奶在哪儿？", freq:3,
     tip:"where can I find ... 是找东西的标准问法，换任何商品都行。",
@@ -473,6 +634,14 @@ const SCENES = [
     fills:[["a sore throat","嗓子疼"],["a headache","头疼"],["a fever","发烧"],["a stomachache","肚子疼"],["a cough","咳嗽"],["trouble sleeping","睡不好"]] },
   { pat:"I'm allergic to {}.", zh:"我对{}过敏。", slot:"过敏原", use:"进诊室主动说，比等着被问安全。",
     fills:[["penicillin","青霉素"],["peanuts","花生"],["shellfish","海鲜"],["aspirin","阿司匹林"],["nothing that I know of","据我所知没有"]] }
+], dlg:[
+  ["t","What brings you in today?","今天哪里不舒服？"],
+  ["y","I have had a sore throat for three days.","我嗓子疼三天了。"],
+  ["t","Any fever? Let me take a look.","有发烧吗？我看一下。"],
+  ["y","A little last night. I'm allergic to penicillin.","昨晚有点。我对青霉素过敏。"],
+  ["t","Good to know, I'll note that. It's a mild infection.","知道了，我记下来。是轻微感染。"],
+  ["y","Do I need a prescription for this?","这个需要处方吗？"],
+  ["t","I'll write you one.","我给你开一张。"]
 ], lines:[
   { en:"I've had a sore throat for three days.", zh:"我嗓子疼三天了。", freq:3,
     tip:"症状+时长一起说，医生最需要这两个信息。sore throat 嗓子疼 / headache 头疼 / fever 发烧。",
@@ -495,6 +664,14 @@ const SCENES = [
     fills:[["a cold","感冒"],["a cough","咳嗽"],["a headache","头疼"],["motion sickness","晕车"],["mosquito bites","蚊子叮"],["an upset stomach","肠胃不适"]] },
   { pat:"How often should I {}?", zh:"多久{}一次？", slot:"用药动作", use:"吃药说 take，不说 eat。",
     fills:[["take it","吃"],["apply it","涂"],["take these","吃这些"],["use the spray","用喷雾"]] }
+], dlg:[
+  ["y","Do you've anything for a cold?","有治感冒的药吗？"],
+  ["t","This one works well — take it twice a day.","这个挺管用，一天吃两次。"],
+  ["y","How often should I take it?","多久吃一次？"],
+  ["t","Two tablets every six hours.","每六小时两片。"],
+  ["y","Is there a non-drowsy version? I have to drive.","有不犯困的吗？我得开车。"],
+  ["t","Yes, this one won't make you sleepy.","有，这个不会让你犯困。"],
+  ["y","I'll take that one. Thanks.","那我要这个。谢谢。"]
 ], lines:[
   { en:"Do you have anything for a cold?", zh:"有治感冒的药吗？", freq:3,
     tip:"不知道药名就说症状，店员会给你拿。for a cough 咳嗽 / for a headache 头疼。",
@@ -517,6 +694,14 @@ const SCENES = [
     fills:[["some money","一点钱"],["these dollars into baht","这些美元换泰铢"],["two hundred dollars","两百美元"],["the rest back into dollars","剩下的换回美元"]] },
   { pat:"What's {}?", zh:"{}是多少？", slot:"要问的数字", use:"跟着问一句手续费，能少踩坑。",
     fills:[["the exchange rate today","今天的汇率"],["the fee","手续费"],["the minimum","最低额度"],["the daily limit","每日限额"]] }
+], dlg:[
+  ["y","I'd like to exchange some money, please.","我想换点钱。"],
+  ["t","How much would you like to change?","你想换多少？"],
+  ["y","Two hundred dollars. What's the exchange rate today?","两百美元。今天汇率多少？"],
+  ["t","It's 1.08, with a three-dollar fee.","汇率 1.08，手续费三美元。"],
+  ["y","Okay. Could I get some smaller bills?","好的。能给点小面额的吗？"],
+  ["t","Sure, how would you like it?","可以，你想怎么搭配面额？"],
+  ["y","Mostly twenties, and some coins for the bus.","主要要二十的，再给点坐公交的硬币。"]
 ], lines:[
   { en:"I'd like to exchange some money, please.", zh:"我想换点钱。", freq:3,
     tip:"exchange money 换汇。接着说 dollars into euros 就清楚了。",
@@ -539,6 +724,15 @@ const SCENES = [
     fills:[["a trim","修一下"],["a little off the top","上面剪掉一点"],["about an inch","大概一英寸"],["the sides shorter","两侧短一点"],["a wash and cut","洗剪"]] },
   { pat:"Could you {}?", zh:"能{}吗？", slot:"具体要求", use:"分区说：top 头顶 / sides 两侧 / back 后面。",
     fills:[["keep the length on top","上面留长"],["take a bit more off","再剪掉一点"],["not cut the front","前面别剪"],["blow it dry","吹干"],["skip the gel","别抹发胶"]] }
+], dlg:[
+  ["t","What are we doing today?","今天想怎么弄？"],
+  ["y","Just a trim, please — about an inch.","稍微修一下就行，大概一英寸。"],
+  ["t","Same style, just shorter?","还是这个发型，只是剪短一点？"],
+  ["y","Yes. Could you keep the length on top?","对。上面的长度能留着吗？"],
+  ["t","So short on the sides, long on top?","所以两边短、上面长？"],
+  ["y","Exactly. And not too short in the front.","正是。前面别剪太短。"],
+  ["t","How's that?","这样怎么样？"],
+  ["y","That's great, thank you.","很好，谢谢。"]
 ], lines:[
   { en:"Just a trim, please — about an inch.", zh:"稍微修一下就行，大概一英寸。", freq:3,
     tip:"trim = 修剪不改型，是最保险的说法。一英寸约 2.5 厘米。",
@@ -561,6 +755,14 @@ const SCENES = [
     fills:[["data","流量"],["unlimited data","不限量流量"],["10 gigs for a month","一个月 10G"],["a local number","本地号码"],["data only","只要流量"]] },
   { pat:"Could you help me {}?", zh:"能帮我{}吗？", slot:"要帮的事", use:"店员通常很乐意当场弄好。",
     fills:[["set it up","设置一下"],["activate it","激活"],["put it in","装上"],["check why it's not connecting","看看为什么连不上"]] }
+], dlg:[
+  ["y","I'd like a SIM card with data, please.","我想要一张有流量的卡。"],
+  ["t","How long are you staying?","你要待多久？"],
+  ["y","About two weeks. How much data does that include?","大概两周。这个套餐含多少流量？"],
+  ["t","Ten gigs for thirty days.","三十天十个 G。"],
+  ["y","That works. Could you help me set it up?","可以。能帮我设置一下吗？"],
+  ["t","Sure, hand me your phone.","好的，手机给我。"],
+  ["y","Thanks so much.","太感谢了。"]
 ], lines:[
   { en:"I'd like a SIM card with data, please.", zh:"我想要一张有流量的卡。", freq:3,
     tip:"data 就是流量。现在也可以说 an eSIM。",
@@ -585,6 +787,14 @@ const SCENES = [
     fills:[["Chen","陈"],["Chen, from Shanghai","上海来的陈"],["Chen — we emailed last week","陈，上周我们通过邮件"],["a friend of Sarah's","Sarah 的朋友"]] },
   { pat:"Sorry, I didn't catch {}.", zh:"抱歉，我没听清{}。", slot:"没听清的内容", use:"catch 这里是听清，比 What? 自然得多。",
     fills:[["your name","你的名字"],["that","那句"],["the last part","后半句"],["what you said","你说的话"]] }
+], dlg:[
+  ["y","Hi, I'm Chen. Nice to meet you.","你好，我是陈。很高兴认识你。"],
+  ["t","Nice to meet you too — I'm Sarah.","我也很高兴认识你，我是 Sarah。"],
+  ["y","Sorry, I didn't catch your name.","抱歉，我没听清你的名字。"],
+  ["t","It's Sarah. S-A-R-A-H.","是 Sarah，S-A-R-A-H。"],
+  ["y","Got it. So what do you do, Sarah?","记住了。Sarah，你是做什么的？"],
+  ["t","I work in marketing. How about you?","我做市场的。你呢？"],
+  ["y","I study Chinese metaphysics — the Yijing.","我研究中国术数，《易经》。"]
 ], lines:[
   { en:"Hi, I'm Chen. Nice to meet you.", zh:"你好，我是陈。很高兴认识你。", freq:3,
     tip:"标准三段：打招呼+报名字+客套。对方回 Nice to meet you too.",
@@ -607,6 +817,14 @@ const SCENES = [
     fills:[["it going","最近"],["everything","一切"],["your day","今天过得"],["work","工作"],["the family","家里人"],["your trip so far","旅程到目前为止"]] },
   { pat:"That sounds {}.", zh:"听起来{}。", slot:"形容词", use:"万能捧场句。听到坏消息换 That's too bad.",
     fills:[["great","不错"],["fun","有意思"],["tough","挺难的"],["interesting","有意思"],["exhausting","够累的"],["like a lot of work","挺费劲的"]] }
+], dlg:[
+  ["y","Hey, how's it going?","嘿，最近怎么样？"],
+  ["t","Pretty good, you?","挺好的，你呢？"],
+  ["y","Not bad. Busy week though.","还行。不过这周挺忙。"],
+  ["t","Same here. The traffic this morning was terrible.","我也是。今早堵得不行。"],
+  ["y","Yeah, tell me about it.","可不是嘛。"],
+  ["t","I'm heading out of town this weekend though.","不过这周末我要出城。"],
+  ["y","That sounds great!","听起来不错啊！"]
 ], lines:[
   { en:"How's it going?", zh:"最近怎么样？", freq:3,
     tip:"最自然的日常问候，等于 How are you，但更口语。回一句 Good, you? 就够。",
@@ -629,6 +847,13 @@ const SCENES = [
     fills:[["grab a coffee","喝杯咖啡"],["get lunch","吃个午饭"],["check out that market","逛逛那个市场"],["grab a drink","喝一杯"],["go for a walk","散散步"]] },
   { pat:"Does {} work for you?", zh:"{}方便吗？", slot:"时间", use:"work for you = 对你合适吗，定时间标准句。",
     fills:[["Friday","周五"],["tomorrow morning","明天上午"],["next week","下周"],["seven o'clock","七点"],["the weekend","周末"]] }
+], dlg:[
+  ["y","Do you want to grab a coffee sometime?","改天一起喝杯咖啡？"],
+  ["t","Sure, I'd love to.","好啊，我很愿意。"],
+  ["y","Does Friday work for you?","周五方便吗？"],
+  ["t","Friday works. What time?","周五可以。几点？"],
+  ["y","How about three, at the place near your office?","三点怎么样，你办公室附近那家？"],
+  ["t","Perfect. See you then.","太好了，到时见。"]
 ], lines:[
   { en:"Do you want to grab a coffee sometime?", zh:"改天一起喝杯咖啡？", freq:3,
     tip:"grab 让邀请显得随意不有压力，是英语约人的标配动词。",
@@ -651,6 +876,13 @@ const SCENES = [
     fills:[["your help","帮忙"],["having me","招待我"],["the ride","捎我一程"],["waiting","等我"],["everything","这一切"],["showing me around","带我逛"]] },
   { pat:"That's really {} of you.", zh:"你真是太{}了。", slot:"形容词", use:"比单说 thank you 有分量。",
     fills:[["kind","客气"],["nice","好"],["thoughtful","周到"],["generous","大方"],["helpful","帮了大忙"]] }
+], dlg:[
+  ["t","Here, I brought you a coffee.","来，给你带了杯咖啡。"],
+  ["y","You didn't have to do that!","你太客气了！"],
+  ["t","It was nothing.","小事一桩。"],
+  ["y","Thanks so much, I really appreciate it.","太感谢了，真的帮大忙了。"],
+  ["t","Happy to help!","乐意效劳！"],
+  ["y","That's really kind of you.","你真是太好了。"]
 ], lines:[
   { en:"Thanks so much, I really appreciate it.", zh:"太感谢了，真的帮大忙了。", freq:3,
     tip:"比单说 thank you 有分量，别人帮了实忙时用。",
@@ -672,6 +904,13 @@ const SCENES = [
     fills:[["that","刚才那事"],["the wait","让你久等"],["the mix-up","搞混了"],["the noise","吵到你"],["the short notice","这么临时通知"]] },
   { pat:"Sorry to {}.", zh:"抱歉{}。", slot:"你造成的打扰", use:"比空说 sorry 具体，对方更容易接受。",
     fills:[["keep you waiting","让你久等"],["bother you","打扰你"],["interrupt","打断一下"],["cancel so late","这么晚才取消"],["ask again","再问一次"]] }
+], dlg:[
+  ["y","Sorry to keep you waiting.","抱歉让你久等了。"],
+  ["t","That's okay, I just got here.","没关系，我也刚到。"],
+  ["y","The train was delayed. Sorry about that.","地铁晚点了。真不好意思。"],
+  ["t","No worries at all.","完全没事。"],
+  ["y","I should have texted you earlier. That's my fault.","我该早点给你发消息的。是我的问题。"],
+  ["t","It's fine, let's grab a table.","没事，我们去找位子吧。"]
 ], lines:[
   { en:"Sorry about that.", zh:"不好意思啊。", freq:3,
     tip:"小事道歉万能句：撞到人、说错话、拿错东西都能用。",
@@ -694,6 +933,13 @@ const SCENES = [
     fills:[["meeting you","认识你"],["seeing you again","再见到你"],["talking to you","跟你聊天"],["working with you","跟你合作"]] },
   { pat:"Have a {}!", zh:"祝你{}！", slot:"祝愿", use:"温度刚好的告别，对谁都能说。",
     fills:[["good one","一切顺利"],["great trip","旅途愉快"],["nice weekend","周末愉快"],["safe flight","飞行平安"],["good night","晚安"]] }
+], dlg:[
+  ["t","I should get going — my flight is at six.","我该走了，六点的飞机。"],
+  ["y","It was nice meeting you.","很高兴认识你。"],
+  ["t","You too! Take care.","你也是！保重。"],
+  ["y","Let's keep in touch.","保持联系啊。"],
+  ["t","Definitely — I'll message you.","一定，我给你发消息。"],
+  ["y","Have a safe flight!","一路平安！"]
 ], lines:[
   { en:"It was nice meeting you.", zh:"很高兴认识你。", freq:3,
     tip:"注意是过去式：初次见面告别时用。老朋友告别说 Good seeing you.",
@@ -718,6 +964,14 @@ const SCENES = [
     fills:[["the product team","产品团队"],["the China market","中国市场"],["partnerships","合作业务"],["the design side","设计这块"],["everything data-related","跟数据相关的事"]] },
   { pat:"Feel free to {} anytime.", zh:"随时{}。", slot:"欢迎对方做的事", use:"reach out 是职场联系的标准说法，收尾很得体。",
     fills:[["reach out","联系我"],["ask me anything","问我任何事"],["drop by","来找我"],["email me","给我发邮件"]] }
+], dlg:[
+  ["t","I don't think we've met. I'm Dan.","我们好像没见过。我是 Dan。"],
+  ["y","Hi Dan, I'm Chen. I work on the product team.","你好 Dan，我是陈，在产品团队。"],
+  ["t","Nice to meet you — I'm on the design side.","很高兴认识你，我是做设计那边的。"],
+  ["y","I've been with the company for three years.","我在这家公司三年了。"],
+  ["t","Oh nice, so you know everyone.","不错啊，那你应该谁都认识了。"],
+  ["y","Most people. Feel free to reach out anytime.","差不多吧。有事随时找我。"],
+  ["t","Thanks, I will.","谢谢，我会的。"]
 ], lines:[
   { en:"I'm Chen, I work on the product team.", zh:"我是陈，在产品团队。", freq:3,
     tip:"名字+部门/角色一句带过，职场介绍别背长稿。",
@@ -740,6 +994,14 @@ const SCENES = [
     fills:[["jump in here","插一句"],["add something","补充一点"],["go back to that","回到刚才那点"],["ask a quick question","问个小问题"],["share my screen","共享一下屏幕"]] },
   { pat:"Just to make sure I understand, {}?", zh:"我确认一下，{}？", slot:"你的理解", use:"确认理解比装懂强一百倍，还显得认真。",
     fills:[["you mean we push it to next week","你是说推到下周"],["is that right","是这样吗"],["we're all agreed on this","这点大家都同意了"],["I'm handling the first part","第一部分我来做"]] }
+], dlg:[
+  ["t","So we're pushing the launch to next month.","所以我们把上线推到下个月。"],
+  ["y","Sorry, could I jump in here?","抱歉，我插一句。"],
+  ["t","Sure, go ahead.","当然，你说。"],
+  ["y","Just to make sure I understand — you mean the whole launch?","我确认一下，你是说整个上线都推？"],
+  ["t","Only the marketing part. The build ships on time.","只是市场那块。产品按时发。"],
+  ["y","Got it. Let me get back to you on the China timeline.","明白了。中国区的时间表我回头答复你。"],
+  ["t","Sure, by end of day?","好的，今天下班前？"]
 ], lines:[
   { en:"Sorry, could I jump in here?", zh:"抱歉，我插一句。", freq:3,
     tip:"抢发言权的礼貌方式。别硬打断，用这句几乎没人会拒绝。",
@@ -762,6 +1024,14 @@ const SCENES = [
     fills:[["Chen","陈"],["Chen from the Shanghai office","上海办公室的陈"],["Chen calling about the order","陈，关于订单的事"],["Chen returning your call","陈，回你电话"]] },
   { pat:"Sorry, could you {}?", zh:"抱歉，能{}吗？", slot:"要对方做的事", use:"电话信号不好时的固定表达：you're breaking up。",
     fills:[["say that again","再说一遍"],["speak up a bit","说大声点"],["hold on a second","稍等一下"],["call me back in ten minutes","十分钟后打给我"]] }
+], dlg:[
+  ["y","Hi, this is Chen calling about the order.","你好，我是陈，关于订单的事。"],
+  ["t","Hi Chen, how can I help?","你好陈，有什么可以帮你？"],
+  ["y","Sorry, you're breaking up — could you say that again?","抱歉信号不好，能再说一遍吗？"],
+  ["t","Can you hear me now? I said it ships Friday.","现在听得到吗？我说周五发货。"],
+  ["y","Much better. Could you hold on a second?","清楚多了。稍等一下好吗？"],
+  ["t","Sure, no problem.","好的，没问题。"],
+  ["y","Thanks for holding. Friday works for us.","谢谢久等。周五我们可以。"]
 ], lines:[
   { en:"Hi, this is Chen calling about the order.", zh:"你好，我是陈，关于订单的事。", freq:3,
     tip:"电话里介绍自己用 this is，不用 I am。加上事由对方更快进入状态。",
@@ -784,6 +1054,14 @@ const SCENES = [
     fills:[["move the meeting to Thursday","把会挪到周四"],["get an extension","延期"],["join remotely","远程参加"],["take Friday off","周五请假"],["get some help on this","这事找人帮忙"]] },
   { pat:"Could you {} when you get a chance?", zh:"你方便的时候能{}吗？", slot:"要对方做的事", use:"when you get a chance 一加，催活儿也不催命。",
     fills:[["send me the file","把文件发我"],["take a look at this","看一下这个"],["let me know","告诉我一声"],["review the draft","看看初稿"]] }
+], dlg:[
+  ["y","Would it be possible to move the meeting to Thursday?","会议能改到周四吗？"],
+  ["t","Let me check my calendar.","我看一下我的日程。"],
+  ["y","Thursday morning would be ideal.","周四上午最好。"],
+  ["t","That works. Anything else?","可以。还有别的事吗？"],
+  ["y","I'd also like to take Friday off.","我还想周五请假。"],
+  ["t","That should be fine — put it in the system.","应该没问题，记得在系统里报一下。"],
+  ["y","Will do. Could you send me the notes when you get a chance?","好的。你方便的时候把纪要发我一下？"]
 ], lines:[
   { en:"Would it be possible to move the meeting to Thursday?", zh:"会议能改到周四吗？", freq:3,
     tip:"Would it be possible to ... 是职场最稳的请求句型，几乎不会得罪人。",
@@ -808,6 +1086,14 @@ const SCENES = [
     fills:[["say that again","再说一遍"],["speak a little slower","说慢一点"],["write it down","写下来"],["spell that","拼一下"],["show me","给我看看"]] },
   { pat:"What does {} mean?", zh:"{}是什么意思？", slot:"没听懂的词", use:"遇到没听过的词直接问，母语者通常很愿意解释。",
     fills:[["that","那个"],["this word","这个词"],["that sign","那个牌子"],["BYO","BYO（自带酒水）"]] }
+], dlg:[
+  ["t","The last bus leaves at six from the north entrance.","末班车六点从北门发车。"],
+  ["y","Sorry, could you say that again?","抱歉，能再说一遍吗？"],
+  ["t","Sure — I said the bus leaves at six.","当然，我说的是公交六点发车。"],
+  ["y","Could you speak a little slower, please?","能说慢一点吗？"],
+  ["t","Of course, sorry. Six o'clock, north entrance.","好的，抱歉。六点，北门。"],
+  ["y","North entrance — what does that mean, exactly?","北门……具体是什么意思？"],
+  ["t","The gate behind the parking lot.","停车场后面那个门。"]
 ], lines:[
   { en:"Sorry, could you say that again?", zh:"抱歉，能再说一遍吗？", freq:3,
     tip:"全场最该背熟的一句。永远不要因为没听懂就点头。",
@@ -830,6 +1116,14 @@ const SCENES = [
     fills:[["find this address","找到这个地址"],["with this","弄一下这个"],["call a taxi","叫辆车"],["carry this","搬一下这个"],["translate this","翻译一下这个"]] },
   { pat:"I think I'm {}.", zh:"我好像{}。", slot:"你的处境", use:"配合手机地图一起用，对方通常会直接给你指。",
     fills:[["lost","迷路了"],["in the wrong place","走错地方了"],["on the wrong train","坐错车了"],["going to miss my flight","要赶不上飞机了"]] }
+], dlg:[
+  ["y","Excuse me, could you help me?","打扰一下，能帮我个忙吗？"],
+  ["t","Sure, what's up?","当然，怎么了？"],
+  ["y","I think I'm lost. I can't find my hotel.","我好像迷路了，找不到我的酒店。"],
+  ["t","Where are you trying to go?","你要去哪儿？"],
+  ["y","The Hilton downtown. Could you show me on the map?","市区的希尔顿。能在地图上指给我看吗？"],
+  ["t","It's two blocks that way, past the bank.","往那边走两个街区，过了银行就是。"],
+  ["y","Thank you so much.","太感谢你了。"]
 ], lines:[
   { en:"Excuse me, could you help me?", zh:"打扰一下，能帮我个忙吗？", freq:3,
     tip:"任何求助的起手式。紧急情况直接喊 I need help!",
@@ -852,6 +1146,14 @@ const SCENES = [
     fills:[["my phone","手机"],["my wallet","钱包"],["my passport","护照"],["my bag","包"],["my room key","房卡"]] },
   { pat:"I think I left it {}.", zh:"我好像落在{}了。", slot:"可能落下的地方", use:"left = 落下（自己丢的），stolen = 被偷，报案说法不同。",
     fills:[["in the taxi","出租车上"],["at the restaurant","餐厅"],["on the train","火车上"],["in my room","房间里"],["at security","安检那儿"]] }
+], dlg:[
+  ["y","I lost my phone — I think I left it in the taxi.","我手机丢了，好像落在出租车上了。"],
+  ["t","Do you've the receipt or the plate number?","你有收据或者车牌号吗？"],
+  ["y","I have the receipt from the app.","我有软件上的收据。"],
+  ["t","Good. You will need to file a report.","很好。你需要报个案。"],
+  ["y","I need to report it for my insurance too.","我也需要报案给保险公司用。"],
+  ["t","Come this way, I'll take your statement.","这边请，我来给你做笔录。"],
+  ["y","Could I get a copy of the report?","能给我一份报案单副本吗？"]
 ], lines:[
   { en:"I lost my phone — I think I left it in the taxi.", zh:"我手机丢了，好像落在出租车上了。", freq:3,
     tip:"丢什么+可能落在哪，一句说完最有助于找回。",
@@ -876,6 +1178,15 @@ const SCENES = [
     fills:[["Chinese metaphysics","中国术数"],["the Yijing, or Book of Changes","《易经》"],["Chinese astrology","中国命理"],["classical Chinese divination","中国古典占卜"],["feng shui and Chinese astrology","风水和命理"]] },
   { pat:"I do {} and I also teach.", zh:"我做{}，也教学。", slot:"你的业务", use:"reading = 一次咨询，是这行最标准的说法。别自称 fortune-teller。",
     fills:[["readings","解读咨询"],["chart readings","看命盘"],["feng shui audits","风水勘察"],["date selection","择日"],["consultations for families and businesses","个人和企业咨询"]] }
+], dlg:[
+  ["t","So what do you do?","你是做什么的？"],
+  ["y","I study Chinese metaphysics — the Yijing, or Book of Changes.","我研究中国术数，也就是《易经》。"],
+  ["t","Oh, the I Ching! I have heard of that.","哦，《易经》！我听说过。"],
+  ["y","It's a traditional system for reading patterns of change.","它是一套解读变化规律的传统体系。"],
+  ["t","So it's like philosophy, or fortune-telling?","那算哲学，还是算命？"],
+  ["y","Part philosophy, part practical method. I do readings, and I also teach.","一半哲学一半实用方法。我做咨询，也教学。"],
+  ["t","How long have you been doing this?","你做这行多久了？"],
+  ["y","I've been practicing for over ten years.","我做了十多年了。"]
 ], lines:[
   { en:"I study Chinese metaphysics — the Yijing, or Book of Changes.", zh:"我研究中国术数，也就是《易经》。", freq:3,
     tip:"Chinese metaphysics 是这一行公认的英文说法，比 fortune-telling 专业得多，一开口就定调。老外多半听过 I Ching。",
@@ -898,6 +1209,15 @@ const SCENES = [
     fills:[["a three-thousand-year-old Chinese classic","一部三千年的中国经典"],["a book of sixty-four hexagrams","一本讲六十四卦的书"],["one of the oldest books in Chinese culture","中国文化最古老的典籍之一"],["part philosophy, part practical method","一半哲学一半实用方法"]] },
   { pat:"It's used to {}.", zh:"它是用来{}的。", slot:"用途", use:"⚠️ trigram 是三爻的八卦，hexagram 是六爻的六十四卦，千万别混。",
     fills:[["read patterns of change","解读变化的规律"],["look at a situation from the outside","跳出来看一件事"],["weigh a decision","权衡一个决定"],["describe where a situation is heading","描述事情的走向"]] }
+], dlg:[
+  ["t","Tell me more about the I Ching.","跟我说说《易经》吧。"],
+  ["y","The Yijing is a three-thousand-year-old Chinese classic.","《易经》是一部三千年的中国经典。"],
+  ["t","Three thousand years? Wow.","三千年？哇。"],
+  ["y","It uses sixty-four hexagrams — six-line symbols — to describe situations.","它用六十四个卦、每卦六爻，来描述各种处境。"],
+  ["t","How do you get a hexagram?","卦是怎么起出来的？"],
+  ["y","You cast a hexagram with coins, then read what it points to.","用铜钱起卦，然后解读它指向什么。"],
+  ["t","Can you show me?","能演示一下吗？"],
+  ["y","Sure — three coins, six times.","可以，三枚铜钱，抛六次。"]
 ], lines:[
   { en:"The Yijing is a three-thousand-year-old Chinese classic.", zh:"《易经》是一部三千年的中国经典。", freq:3,
     tip:"先给年代和身份，老外立刻有画面。Yijing 和 I Ching 是同一个词的新旧拼法，都能用。",
@@ -920,6 +1240,15 @@ const SCENES = [
     fills:[["Chinese astrology based on your birth date and time","按出生年月日时看的中国命理"],["what we call the Four Pillars of Destiny","我们说的四柱"],["a chart of eight characters","八个字组成的命盘"],["closer to a map than a prediction","更像地图而不是预言"]] },
   { pat:"It shows {}.", zh:"它看的是{}。", slot:"能看什么", use:"这句能一次性挡掉九成误解，也是很好的专业边界声明。",
     fills:[["tendencies and timing, not fixed events","趋势和时机，不是既定事件"],["what a person is made of","一个人的底子"],["when the pressure comes","压力什么时候来"],["which years favor change","哪几年宜变动"]] }
+], dlg:[
+  ["t","What's BaZi exactly?","八字到底是什么？"],
+  ["y","BaZi is Chinese astrology based on your birth date and time.","八字是根据出生年月日时来看的中国命理。"],
+  ["t","Like Western astrology?","像西方占星那样吗？"],
+  ["y","Similar idea. We call it the Four Pillars of Destiny.","想法类似。我们叫它四柱。"],
+  ["t","So you need my exact birth time?","所以你需要我准确的出生时间？"],
+  ["y","Yes — year, month, day, and hour.","是的，年、月、日、时。"],
+  ["t","And it tells you what will happen?","它能告诉你会发生什么？"],
+  ["y","It doesn't predict events — it shows tendencies and timing.","它不预测具体事件，看的是趋势和时机。"]
 ], lines:[
   { en:"BaZi is Chinese astrology based on your birth date and time.", zh:"八字是根据出生年月日时来看的中国命理。", freq:3,
     tip:"用 Chinese astrology 搭桥，老外马上有参照系，再纠正细节。",
@@ -942,6 +1271,15 @@ const SCENES = [
     fills:[["how a space affects the people in it","环境如何影响住在里面的人"],["the relationship between land, buildings and people","地、宅、人的关系"],["where to put things and why","东西该放哪儿、为什么"],["reading the shape of the land","读地形"]] },
   { pat:"We look at {} first.", zh:"我们先看{}。", slot:"看的顺序", use:"form school 形家 / compass school 理气派，说出来很内行。",
     fills:[["the landform","形势峦头"],["the mountains and water around it","周围的山和水"],["the sitting and facing direction","坐向"],["how the qi moves through the space","气怎么走"]] }
+], dlg:[
+  ["t","What's feng shui about, really?","风水到底讲什么？"],
+  ["y","Feng shui is about how a space affects the people in it.","风水讲的是环境如何影响住在里面的人。"],
+  ["t","Like interior design?","像室内设计那样吗？"],
+  ["y","Related, but we look at the landform first, then the compass direction.","有关联，但我们先看形势，再看理气方位。"],
+  ["t","What's that instrument called?","那个仪器叫什么？"],
+  ["y","This is a luopan — a Chinese geomantic compass.","这是罗盘，中国的堪舆罗盘。"],
+  ["t","What are all these rings for?","这些圈都是干什么用的？"],
+  ["y","Each ring carries a different layer of information.","每一圈承载不同层面的信息。"]
 ], lines:[
   { en:"Feng shui is about how a space affects the people in it.", zh:"风水讲的是环境如何影响住在里面的人。", freq:3,
     tip:"避开玄学词，先说人人能懂的因果，老外接受度最高。",
@@ -964,6 +1302,14 @@ const SCENES = [
     fills:[["your birth date, time and place","出生日期、时间和地点"],["your birth data","你的出生资料"],["the exact hour you were born","准确的出生时辰"],["the address and the floor plan","地址和户型图"]] },
   { pat:"Is there something specific you'd like to {}?", zh:"有什么特别想{}的吗？", slot:"咨询方向", use:"把话题收窄，一小时才讲得完。",
     fills:[["look at","看的方面"],["ask about","问的问题"],["focus on","重点谈的"],["understand better","弄明白的"]] }
+], dlg:[
+  ["y","Before we start — could you give me your birth date, time, and place?","开始之前，能给我你的出生日期、时间和地点吗？"],
+  ["t","March 5th, 1989, around 7 a.m., in Sydney.","1989 年 3 月 5 日，早上七点左右，在悉尼。"],
+  ["y","Do you know the exact hour you were born?","你知道自己出生的准确时辰吗？"],
+  ["t","Not exactly — sometime in the morning.","不太确定，大概是上午。"],
+  ["y","An approximate time still works. Is there something specific you would like to look at?","大概时间也可以。你有特别想看的方面吗？"],
+  ["t","Mainly my career, I think.","主要是事业吧，我觉得。"],
+  ["y","Good. Everything you tell me stays confidential.","好。你告诉我的一切都会保密。"]
 ], lines:[
   { en:"Could you give me your birth date, time, and place?", zh:"能给我你的出生日期、时间和地点吗？", freq:3,
     tip:"三样缺一不可。birth data 是这行的专用词，可直接说 I'll need your birth data。",
@@ -986,6 +1332,15 @@ const SCENES = [
     fills:[["a strong Wood element","木很旺"],["a weak Day Master","日主偏弱"],["a lot of Water","水很多"],["Fire as the useful god","以火为用神"],["a clash in the year pillar","年柱有冲"]] },
   { pat:"This suggests {}.", zh:"这显示{}。", slot:"结论", use:"用 suggests / tends to / favors 这类软动词，既准确又不把话说死。",
     fills:[["the next two years favor change","未来两年宜变动"],["a move is supported","适合搬迁"],["patience pays off here","这里宜等待"],["partnership works better than going alone","合作优于单干"]] }
+], dlg:[
+  ["y","Your chart shows a strong Wood element.","你的命盘木很旺。"],
+  ["t","What does Wood mean?","木是什么意思？"],
+  ["y","Growth, planning, wanting to expand. It also means you push hard.","生长、谋划、想扩张。也意味着你会硬撑。"],
+  ["t","That sounds like me.","这挺像我的。"],
+  ["y","This suggests the next two years favor change.","这显示未来两年宜变动。"],
+  ["t","Should I take the new job then?","那我该接这个新工作吗？"],
+  ["y","My suggestion would be to wait until spring.","我的建议是等到春天。"],
+  ["t","That's helpful, thank you.","很有帮助，谢谢你。"]
 ], lines:[
   { en:"Your chart shows a strong Wood element.", zh:"你的命盘木很旺。", freq:3,
     tip:"chart = 命盘/卦盘。五行英文：Wood 木 / Fire 火 / Earth 土 / Metal 金 / Water 水，首字母大写显专业。",
@@ -1008,6 +1363,14 @@ const SCENES = [
     fills:[["medical","医疗"],["legal","法律"],["financial","投资理财"],["medical or legal","医疗或法律"]] },
   { pat:"I'd rather not read on {}.", zh:"{}的问题我不看。", slot:"不看的题目", use:"I'd rather not 是最柔和的拒绝，行规如此，对方通常很尊重。",
     fills:[["questions about life and death","生死"],["other people's private matters","别人的隐私"],["anything involving a third party","牵涉第三方"],["lost objects","寻物"]] }
+], dlg:[
+  ["t","Can you tell me how long I'll live?","你能算出我能活多久吗？"],
+  ["y","I'd rather not read on questions about life and death.","生死的问题我不看。"],
+  ["t","Fair enough.","可以理解。"],
+  ["y","I read tendencies, not certainties.","我看的是趋势，不是定论。"],
+  ["t","What about my health? I've been tired lately.","那健康呢？我最近老是累。"],
+  ["y","I don't give medical advice. Please see a doctor for that.","我不提供医疗建议。这个请去看医生。"],
+  ["t","Of course, I understand.","当然，我明白。"]
 ], lines:[
   { en:"I read tendencies, not certainties.", zh:"我看的是趋势，不是定论。", freq:3,
     tip:"开场就说这一句，能省掉后面所有麻烦，专业感也最强。",
@@ -1030,6 +1393,15 @@ const SCENES = [
     fills:[["one hour","一小时"],["ninety minutes","九十分钟"],["a hundred and fifty dollars","一百五十美元"],["one hour, and I'll send a recording after","一小时，事后发录音"]] },
   { pat:"We can do it {}.", zh:"可以{}做。", slot:"形式", use:"跨国客户必备，afterwards 比 later 正式。",
     fills:[["online","线上"],["over Zoom","用 Zoom"],["in person","当面"],["in English","用英语"],["in two sessions","分两次"]] }
+], dlg:[
+  ["t","How much do you charge for a reading?","你看一次收多少钱？"],
+  ["y","A full reading is one hour, and it's a hundred and fifty dollars.","完整一次一小时，一百五十美元。"],
+  ["t","Do you take card?","你收卡吗？"],
+  ["y","I do. We can do it online — I'll send you the chart afterwards.","收的。可以线上做，结束后我把命盘发你。"],
+  ["t","Great, over Zoom?","好啊，用 Zoom？"],
+  ["y","Zoom works. I'm also running a workshop next month — you're welcome to join.","Zoom 可以。我下个月还有个工作坊，欢迎参加。"],
+  ["t","I'd love to. How do I sign up?","我很想参加。怎么报名？"],
+  ["y","Here is my contact — let's stay in touch.","这是我的联系方式，保持联系。"]
 ], lines:[
   { en:"A full reading is one hour, and it's a hundred and fifty dollars.", zh:"完整一次一小时，一百五十美元。", freq:3,
     tip:"时长+价格一句说完，最不尴尬。东南亚可按当地货币，先说 in US dollars 更清楚。",

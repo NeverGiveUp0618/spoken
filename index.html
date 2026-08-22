@@ -160,6 +160,23 @@ input{font-family:inherit}
 .pmeta b{color:var(--ink2);font-weight:600}
 
 
+
+/* ===== 微对话（聊天气泡）===== */
+.dlg{display:flex;flex-direction:column;gap:10px;margin-bottom:6px}
+.bub{max-width:82%;padding:11px 13px;border-radius:15px;position:relative;line-height:1.5}
+.bub.t{align-self:flex-start;background:var(--card2);border:1px solid var(--line);border-bottom-left-radius:5px}
+.bub.y{align-self:flex-end;background:rgba(61,220,151,.14);border:1px solid rgba(61,220,151,.3);
+  border-bottom-right-radius:5px}
+.bub .be{font-size:15px;font-weight:550}
+.bub.y .be{color:var(--acc)}
+.bub .bz{font-size:12px;color:var(--ink3);margin-top:4px}
+.bub .who{font-size:10px;letter-spacing:1px;color:var(--ink3);margin-bottom:3px}
+.bub.playing{box-shadow:0 0 0 2px var(--acc)}
+.dlgbar{display:flex;align-items:center;gap:8px;margin:2px 0 12px}
+.dlgbar .btn{padding:10px}
+/* 演练：轮到你说时把对方的话糊掉 */
+.bub.hide .be,.bub.hide .bz{filter:blur(5px);user-select:none}
+
 /* ===== 折叠（内容多的模块默认收起）===== */
 .foldhead{display:block;width:100%;text-align:left;cursor:pointer}
 .foldarrow{color:var(--ink3);transition:transform .22s;flex:none}
@@ -397,8 +414,8 @@ input{font-family:inherit}
 
 <div class="toast" id="toast"></div>
 
-<script src="audio/manifest.js?v=3"></script>
-<script src="data.js?v=6"></script>
-<script src="app.js?v=6"></script>
+<script src="audio/manifest.js?v=4"></script>
+<script src="data.js?v=7"></script>
+<script src="app.js?v=7"></script>
 </body>
 </html>

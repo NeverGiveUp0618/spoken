@@ -124,6 +124,38 @@ const appTxt = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8");
   ok(ICONS.has(m[1]), "app.js 用了不存在的图标：" + m[1]));
 
 
+sec("微对话");
+let nDlg = 0, nTurn = 0;
+SCENES.forEach(s => {
+  ok(!!s.dlg, s.id + " 缺微对话");
+  if (!s.dlg) return;
+  nDlg++; nTurn += s.dlg.length;
+  ok(s.dlg.length >= 6, s.id + " 对话太短（" + s.dlg.length + " 句），至少 6 句才算走完一轮");
+  ok(s.dlg.length <= 10, s.id + " 对话太长（" + s.dlg.length + " 句），演练会累");
+  const you = s.dlg.filter(d => d[0] === "y").length;
+  ok(you >= 3, s.id + " 你说的只有 " + you + " 句，练不到什么");
+  ok(Math.abs(you - (s.dlg.length - you)) <= 2, s.id + " 你和对方说的句数太不平衡");
+  let last = null;
+  s.dlg.forEach((d, i) => {
+    const at = s.id + " 第" + (i + 1) + "句";
+    ok(Array.isArray(d) && d.length === 3, at + " 不是 [谁,英文,中文] 三元组");
+    if (!Array.isArray(d) || d.length !== 3) return;
+    ok(d[0] === "y" || d[0] === "t", at + " 说话人只能是 y/t，实为 " + d[0]);
+    ok(!/[\u4e00-\u9fa5]/.test(d[1]), at + " 英文里混入中文：" + d[1]);
+    ok(/[\u4e00-\u9fa5]/.test(d[2]), at + " 中文栏没有中文：" + d[2]);
+    ok(d[1].split(/\s+/).length <= 16, at + " 太长（" + d[1].split(/\s+/).length + " 词），对话句要短");
+    ok(d[0] !== last, at + " 和上一句是同一个人说的，不成对话");
+    last = d[0];
+  });
+  // 对话应该真的用上这个场景的核心表达
+  const norm = x => x.toLowerCase().replace(/[^a-z ]/g, "");
+  const youText = s.dlg.filter(d => d[0] === "y").map(d => norm(d[1])).join(" | ");
+  const core = norm(s.lines[0].en).split(/\s+/).filter(w => w.length > 3);
+  const hit = core.filter(w => youText.indexOf(w) >= 0).length;
+  ok(hit >= Math.min(2, core.length), s.id + " 对话里没用上本场景的核心说法：" + s.lines[0].en);
+});
+ok(nDlg === SCENES.length, "不是每个场景都有对话");
+
 sec("对方回答（听力素材）");
 let nReply = 0, nSplit = 0;
 SCENES.forEach(s => s.lines.forEach((l, i) => {
@@ -189,7 +221,7 @@ const nT = TERMSETS.reduce((a, t) => a + t.terms.length, 0);
 const nP = allPats.length;
 const nF = allPats.reduce((a, x) => a + x.p.fills.length, 0);
 console.log("\n" + "-".repeat(46));
-console.log("对方回答 " + nReply + " 条（拆句 " + nSplit + "）");
+console.log("微对话 " + nDlg + " 段 " + nTurn + " 句 · 对方回答 " + nReply + " 条（拆句 " + nSplit + "）");
 console.log("分组 " + GROUPS.length + " · 场景 " + SCENES.length + " · 模板 " + nP +
   "（可组合 " + nF + " 句） · 例句 " + nL + " · 专业词 " + nT);
 console.log(fail ? "✗ 通过 " + pass + " 项，失败 " + fail + " 项" : "✓ 全部通过（" + pass + " 项）");
