@@ -10,16 +10,25 @@ catch (e) { try { JSDOM = require("jsdom").JSDOM; } catch (e2) {
 
 const errs = [];
 const dom = new JSDOM(fs.readFileSync(path.join(ROOT, "index.html"), "utf8"), {
-  runScripts: "outside-only", url: "http://localhost/", pretendToBeVisual: true
+  runScripts: "outside-only", url: "http://localhost/", pretendToBeVisual: true,
+  virtualConsole: new (require(path.join(ROOT, "..", "english-game", "node_modules", "jsdom")).VirtualConsole)()
 });
 const w = dom.window;
 w.speechSynthesis = { getVoices: () => [], cancel() {}, speak() {} };
+// jsdom 没实现媒体播放，打个桩，顺便记录实际播了哪个文件
+const played = [];
+w.HTMLMediaElement.prototype.play = function () { if (this.src) played.push(this.src); return Promise.resolve(); };
+w.HTMLMediaElement.prototype.pause = function () {};
+w.HTMLMediaElement.prototype.load = function () {};
 w.SpeechSynthesisUtterance = function () {};
 w.onerror = (m) => errs.push(String(m));
 w.confirm = () => true;
 // 必须一次性 eval：分次 eval 时 const 不跨作用域（浏览器的 <script> 则共享全局词法环境）
 try {
-  w.eval(["data.js", "app.js"].map(f => fs.readFileSync(path.join(ROOT, f), "utf8")).join("\n;\n"));
+  // 末尾挂个钩子：这些都是 const 声明，不会自动出现在 window 上，
+  // 而下一次 w.eval 又是新作用域，看不见它们，只能在同一次 eval 里导出。
+  w.eval(["audio/manifest.js", "data.js", "app.js"].map(f => fs.readFileSync(path.join(ROOT, f), "utf8")).join("\n;\n") +
+    "\n;window.__t = { audioMap: (typeof AUDIO_MAP === 'undefined' ? null : AUDIO_MAP), get aud(){ return AUD; }, say: say };");
 } catch (e) { errs.push("执行报错：" + e.message); }
 const d = w.document;
 const q = s => d.querySelector(s);
@@ -27,6 +36,12 @@ const click = el => { if (!el) throw new Error("找不到要点的元素"); el.d
 let pass = 0, fail = 0;
 const ok = (c, m) => c ? pass++ : (fail++, console.log("  ✗ " + m));
 const step = (name, fn) => { try { fn(); pass++; } catch (e) { fail++; console.log("  ✗ " + name + "：" + e.message); } };
+
+function switchToScene() {
+  click(d.querySelector('.tab[data-tab="home"]'));
+  click(d.querySelector('.gcard[data-arg="travel"]'));
+  click(d.querySelector('.srow[data-arg="taxi"]'));
+}
 
 console.log("[启动]");
 ok(errs.length === 0, "加载报错：" + errs.join(" | "));
@@ -40,6 +55,7 @@ step("点开分组", () => { click(d.querySelector('.gcard[data-arg="travel"]'))
 ok(d.querySelectorAll(".srow").length === 8, "出行组场景数不对：" + d.querySelectorAll(".srow").length);
 step("点开场景", () => { click(d.querySelector('.srow[data-arg="taxi"]')); });
 ok(d.querySelectorAll("#v-home .pcard").length === 2, "场景页模板卡不是 2 张：" + d.querySelectorAll("#v-home .pcard").length);
+ok(d.querySelectorAll("#v-home .pcard.fold").length === 0, "场景页只有 2 个模板，不该折叠");
 ok(d.querySelectorAll(".lcard").length === 3, "场景里不是三张句子卡");
 
 console.log("[模板点词填空]");
@@ -65,12 +81,35 @@ ok(Object.keys(JSON.parse(w.localStorage.getItem("spoken_fav_v1"))).length === 2
 step("返回", () => click(q("#back")));
 ok(d.querySelectorAll(".srow").length === 8, "返回后没回到场景列表");
 
-console.log("[句型页]");
+console.log("[句型页 · 折叠]");
 step("切到句型", () => click(d.querySelector('.tab[data-tab="pat"]')));
 ok(d.querySelectorAll("#v-pat .pcard").length === 20, "核心句型卡数量不对：" + d.querySelectorAll("#v-pat .pcard").length);
 ok(q("#v-pat .wrap").innerHTML.indexOf("先记模板") > 0, "句型页没渲染说明");
+ok(d.querySelectorAll("#v-pat .pcard.fold").length === 20, "核心句型没有全部设成可折叠");
+ok(d.querySelectorAll("#v-pat .pcard.open").length === 0, "核心句型默认不该是展开的");
+const c0 = q("#v-pat .pcard");
+ok(c0.querySelector(".ppat") && c0.querySelector(".pzh"), "折叠态看不到模板句和中文");
+ok(c0.querySelector(".pbody .pfills"), "替换词没放进可折叠区");
+ok(/\d+ 个换法/.test(c0.querySelector(".phead").textContent), "折叠态没提示有几个换法");
+step("展开第一张", () => click(c0.querySelector(".foldhead")));
+ok(c0.classList.contains("open"), "点了没展开");
+step("再点一次收起", () => click(c0.querySelector(".foldhead")));
+ok(!c0.classList.contains("open"), "再点没收起");
+step("点收藏不该触发折叠", () => click(c0.querySelector("[data-fav]")));
+ok(!c0.classList.contains("open"), "点收藏按钮误触发了展开");
+step("取消收藏", () => click(c0.querySelector("[data-fav]")));
+const fa = q("#v-pat .secbtn");
+ok(!!fa && fa.textContent === "全部展开", "缺全部展开按钮");
+step("全部展开", () => click(fa));
+ok(d.querySelectorAll("#v-pat .pcard.open").length === 20, "全部展开没生效：" + d.querySelectorAll("#v-pat .pcard.open").length);
+ok(fa.textContent === "全部收起", "按钮文字没变成全部收起");
+step("全部收起", () => click(fa));
+ok(d.querySelectorAll("#v-pat .pcard.open").length === 0, "全部收起没生效");
+step("展开后仍能点词填空", () => { click(c0.querySelector(".foldhead")); click(c0.querySelector(".pfill")); });
+ok(c0.querySelector(".slot").classList.contains("filled"), "折叠卡展开后填空失效");
 step("进分组模板", () => click(d.querySelector('#v-pat .mrow[data-arg="sea"]')));
 ok(d.querySelectorAll("#v-pat .pcard").length === 16, "东南亚组模板数不对：" + d.querySelectorAll("#v-pat .pcard").length);
+ok(d.querySelectorAll("#v-pat .pcard.fold").length === 16, "分组模板页没折叠");
 step("返回", () => click(q("#back")));
 
 console.log("[单词本]");
@@ -79,6 +118,13 @@ ok(q("#v-terms .wrap").innerHTML.indexOf("用英语讲你这一行") > 0, "单�
 step("进分类", () => click(d.querySelector('#v-terms .gcard[data-arg="fengshui"]')));
 ok(d.querySelectorAll("#v-terms .tcard").length === 11, "风水词条数不对：" + d.querySelectorAll("#v-terms .tcard").length);
 ok(q("#v-terms .ten").textContent.indexOf("feng shui") === 0, "词条渲染异常");
+ok(d.querySelectorAll("#v-terms .tcard.fold").length === 11, "单词本词条没折叠");
+ok(d.querySelectorAll("#v-terms .tcard.open").length === 0, "单词本默认不该展开");
+const t0 = q("#v-terms .tcard");
+step("展开词条", () => click(t0.querySelector(".foldhead")));
+ok(t0.classList.contains("open"), "词条点了没展开");
+step("单词本全部展开", () => click(q("#v-terms .secbtn")));
+ok(d.querySelectorAll("#v-terms .tcard.open").length === 11, "单词本全部展开没生效");
 
 console.log("[练习：模板填空]");
 step("切到练习", () => click(d.querySelector('.tab[data-tab="drill"]')));
@@ -150,6 +196,25 @@ step("搜专业词", () => { inp.value = "hexagram"; inp.dispatchEvent(new w.Eve
 ok(d.querySelectorAll("#res .tcard").length > 0, "专业词搜不到结果");
 step("搜模板", () => { inp.value = "Could I have"; inp.dispatchEvent(new w.Event("input", { bubbles: true })); });
 ok(d.querySelectorAll("#res .pcard").length > 0, "搜不到句型模板");
+
+console.log("[发音通道]");
+// data.js/app.js/manifest.js 是一次 eval 拼进去的，const 不挂在 window 上，只能用 eval 读
+const nAudio = w.__t.audioMap ? Object.keys(w.__t.audioMap).length : 0;
+ok(nAudio > 500, "manifest 没加载或条数不足：" + nAudio);
+played.length = 0;
+step("点例句喇叭", () => { switchToScene(); click(d.querySelector("#v-home .lcard [data-say]")); });
+ok(played.some(u => /\/audio\/.+\.mp3$/.test(u)), "点喇叭没走 mp3 通道，播的是：" + (played[0] || "什么都没播"));
+played.length = 0;
+step("点模板替换词", () => click(d.querySelector("#v-home .pcard .pfill")));
+ok(played.some(u => /\/audio\/.+\.mp3$/.test(u)), "模板组合句没走 mp3：" + (played[0] || "什么都没播"));
+played.length = 0;
+step("慢速播放", () => click(d.querySelector("#v-home .lcard [data-slow]")));
+ok(played.length > 0, "慢速没播出来");
+const pr = w.__t.aud ? w.__t.aud.playbackRate : null;
+ok(pr !== null && pr < 1, "慢速没把 playbackRate 降下来：" + pr);
+w.__t.say("Could you take me to this address, please?");
+const normal = w.__t.aud.playbackRate;
+ok(normal === 1, "正常速度不该改 playbackRate：" + normal);
 
 console.log("[全站无 emoji]");
 const EM = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u2605\u2606]/u;

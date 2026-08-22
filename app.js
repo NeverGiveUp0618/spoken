@@ -189,6 +189,11 @@ function render() {
   (PAGES[st.page] || (() => { box.innerHTML = "<div class='empty'>页面不存在</div>"; }))(box, st.arg);
   if (STACK.length > 1) $("#app").scrollTop = 0;
 }
+function secBar(title, note, foldScope) {
+  return '<div class="sec"><span class="t">' + esc(title) + '</span><span class="l"></span>' +
+    (foldScope ? '<button class="secbtn" data-foldall="' + foldScope + '">全部展开</button>'
+               : note ? '<span class="n">' + esc(note) + "</span>" : "") + "</div>";
+}
 function setTitle(main, sub) {
   $("#ttl").innerHTML = esc(main) + (sub ? ' <span class="sub">' + esc(sub) + "</span>" : "");
 }
@@ -208,26 +213,59 @@ function patCard(p, opt) {
   const id = "p" + (PSEQ++);
   const [a, b] = splitPat(p.pat);
   const fav = FAV[p.key] ? "on" : "";
-  return '<div class="pcard' + (opt.plain ? " plain" : "") + '" id="' + id + '" data-pk="' + p.key + '">' +
+  const fold = opt.fold !== false;   // 默认折叠；场景页传 fold:false 直接展开
+  return '<div class="pcard' + (opt.plain ? " plain" : "") + (fold ? " fold" : "") +
+      '" id="' + id + '" data-pk="' + p.key + '">' +
+    (fold ? '<div class="foldhead" data-pfold="' + id + '">' : "") +
     '<div class="phead">' +
       '<span class="tag">' + ic("slot") + (opt.label || (p.core ? "核心句型" : "场景模板")) + "</span>" +
       (opt.from ? '<span class="pill">' + esc(p.from) + "</span>" : "") +
+      (fold ? '<span class="pill">' + p.fills.length + " 个换法</span>" : "") +
       '<span class="sp"></span>' +
       '<button class="iconbtn ' + fav + '" data-fav="' + p.key + '">' + ic("star", "sm") + "</button>" +
       '<button class="iconbtn" data-psay="' + id + '">' + ic("sound", "sm") + "</button>" +
+      (fold ? '<span class="foldarrow">' + ic("next") + "</span>" : "") +
     "</div>" +
     '<div class="ppat">' + esc(a) +
       '<span class="slot empty" data-slot="' + id + '">' + esc(p.slot || "____") + "</span>" +
       esc(b) + "</div>" +
     '<div class="pzh">' + esc(p.zh).replace(/\{\}/g, '<span class="zs">' + esc(p.slot || "…") + "</span>") + "</div>" +
-    (p.use ? '<div class="puse">' + esc(p.use) + "</div>" : "") +
-    '<div class="pfills">' + p.fills.map((f, i) =>
-      '<button class="pfill" data-fill="' + id + '" data-fi="' + i + '">' + esc(f[0]) +
-      '<span class="zh">' + esc(f[1]) + "</span></button>").join("") + "</div>" +
-    (p.where ? '<div class="pmeta"><b>常出现在</b> ' + esc(p.where) + "</div>" : "") +
-    (p.near ? '<div class="pmeta"><b>近义句式</b> ' + esc(p.near) + "</div>" : "") +
-    "</div>";
+    (fold ? "</div>" : "") +
+    '<div class="pbody">' +
+      (p.use ? '<div class="puse">' + esc(p.use) + "</div>" : "") +
+      '<div class="pfills">' + p.fills.map((f, i) =>
+        '<button class="pfill" data-fill="' + id + '" data-fi="' + i + '">' + esc(f[0]) +
+        '<span class="zh">' + esc(f[1]) + "</span></button>").join("") + "</div>" +
+      (p.where ? '<div class="pmeta"><b>常出现在</b> ' + esc(p.where) + "</div>" : "") +
+      (p.near ? '<div class="pmeta"><b>近义句式</b> ' + esc(p.near) + "</div>" : "") +
+    "</div></div>";
 }
+/* 折叠开合：点卡片头部展开，点里面的收藏/喇叭按钮不触发 */
+document.addEventListener("click", e => {
+  if (e.target.closest("[data-fav],[data-psay],[data-fill],[data-say],[data-slow]")) return;
+  const h = e.target.closest("[data-pfold],[data-tfold]");
+  if (h) {
+    const card = document.getElementById(h.dataset.pfold || h.dataset.tfold);
+    if (card) {
+      const open = card.classList.toggle("open");
+      if (open && card.dataset.pk) {         // 展开时顺手念一遍模板的第一个例子
+        const p = PATS.find(x => x.key === card.dataset.pk);
+        if (p && !card.dataset.filled) say(p.pat.replace("{}", p.fills[0][0]));
+      }
+    }
+    return;
+  }
+  const fa = e.target.closest("[data-foldall]");
+  if (fa) {
+    const scope = document.getElementById(fa.dataset.foldall) || document;
+    const cards = scope.querySelectorAll(".fold");
+    const toOpen = fa.dataset.state !== "open";
+    cards.forEach(c => c.classList.toggle("open", toOpen));
+    fa.dataset.state = toOpen ? "open" : "";
+    fa.textContent = toOpen ? "全部收起" : "全部展开";
+  }
+});
+
 /* 点替换词 → 填进空里并朗读 */
 document.addEventListener("click", e => {
   const t = e.target.closest("[data-fill],[data-psay]");
@@ -367,7 +405,7 @@ PAGES.scene = function (box, sid) {
   setTitle(s.name, s.en);
   topAction("play", () => { let i = 0; const seq = () => { if (i < s.lines.length) { say(s.lines[i].en); i++; setTimeout(seq, 3200); } }; seq(); });
   let h = '<div class="sec"><span class="t">句型模板</span><span class="l"></span><span class="n">点词填空</span></div>';
-  PATS.filter(p => p.sid === sid).forEach(p => h += patCard(p));
+  PATS.filter(p => p.sid === sid).forEach(p => h += patCard(p, { fold: false }));
   h += '<div class="sec"><span class="t">现成的三句</span><span class="l"></span><span class="n">按频率排</span></div>';
   s.lines.forEach((l, i) => h += lineCard(Object.assign({}, l, { key: sid + "#" + i }), sid + i));
   h += '<div class="btnrow"><button class="btn gh" data-go="drill-run" data-arg="fill:' + sid + '">' + ic("slot") + '练模板</button>' +
@@ -420,7 +458,7 @@ PAGES.pat = function (box) {
     '<div class="stat"><b>' + PATTERNS.length + "</b><span>核心句型</span></div>" +
     '<div class="stat"><b>' + PATS.length + "</b><span>模板总数</span></div>" +
     '<div class="stat"><b>' + done + "</b><span>已掌握</span></div></div>";
-  h += '<div class="sec"><span class="t">核心句型</span><span class="l"></span><span class="n">跨场景通用</span></div>';
+  h += secBar("核心句型", null, "v-pat");
   PATTERNS.forEach((p, i) => h += patCard(PATS.find(x => x.key === "P:core#" + i)));
   h += '<div class="sec"><span class="t">场景模板</span><span class="l"></span><span class="n">' +
     (PATS.length - PATTERNS.length) + " 个</span></div>";
@@ -435,24 +473,33 @@ PAGES.pat = function (box) {
 PAGES.patgroup = function (box, gid) {
   const g = GROUP_OF[gid];
   setTitle(g.name + " · 模板", g.desc);
-  let h = "";
+  let h = '<div class="sec"><span class="t">' + esc(g.name) + '</span><span class="l"></span>' +
+    '<button class="secbtn" data-foldall="v-pat">全部展开</button></div>';
   SCENES.filter(s => s.group === gid).forEach(sc => {
-    h += '<div class="sec"><span class="t">' + esc(sc.name) + '</span><span class="l"></span><span class="n">' + esc(sc.en) + "</span></div>";
+    h += '<div class="sec" style="margin:16px 2px 10px"><span class="t" style="font-size:11.5px;color:var(--ink2)">' +
+      esc(sc.name) + '</span><span class="l"></span><span class="n">' + esc(sc.en) + "</span></div>";
     PATS.filter(p => p.sid === sc.id).forEach(p => h += patCard(p, { plain: true }));
   });
   box.innerHTML = h;
 };
 
 /* ========== 7. 单词本 ========== */
-function termCard(t) {
+let TSEQ = 0;
+function termCard(t, opt) {
+  opt = opt || {};
   const fav = FAV[t.key] ? "on" : "";
-  return '<div class="tcard">' +
+  const fold = opt.fold !== false;
+  const id = "t" + (TSEQ++);
+  return '<div class="tcard' + (fold ? " fold" : "") + '" id="' + id + '">' +
+    (fold ? '<div class="foldhead" data-tfold="' + id + '">' : "") +
     '<div class="thead"><div class="ten">' + esc(t.en) +
       '<div class="tzh">' + esc(t.zh) + "</div>" +
       (t.py && t.py !== "—" ? '<div class="tpy">' + esc(t.py) + "</div>" : "") +
     "</div>" +
     '<button class="iconbtn ' + fav + '" data-fav="' + t.key + '">' + ic("star", "sm") + "</button>" +
-    '<button class="iconbtn" data-say="' + esc(t.en) + '">' + ic("sound", "sm") + "</button></div>" +
+    '<button class="iconbtn" data-say="' + esc(t.en) + '">' + ic("sound", "sm") + "</button>" +
+    (fold ? '<span class="foldarrow">' + ic("next") + "</span>" : "") + "</div>" +
+    (fold ? "</div>" : "") +
     '<div class="tdef" data-say="' + esc(t.def) + '">' + esc(t.def) + "</div>" +
     '<div class="tnote">' + esc(t.note).replace(/⚠️/g, "<b>⚠️</b>") + "</div></div>";
 }
@@ -478,7 +525,9 @@ PAGES.termset = function (box, tid) {
   const set = TERMSETS.find(t => t.id === tid);
   setTitle(set.name, set.en);
   topAction("play", () => { let i = 0; const seq = () => { if (i < set.terms.length) { say(set.terms[i].en); i++; setTimeout(seq, 2200); } }; seq(); });
-  box.innerHTML = set.terms.map(x => termCard(Object.assign({}, x, { key: "T:" + tid + "#" + set.terms.indexOf(x) }))).join("");
+  box.innerHTML = '<div class="sec"><span class="t">' + esc(set.name) + '</span><span class="l"></span>' +
+    '<button class="secbtn" data-foldall="v-terms">全部展开</button></div>' +
+    set.terms.map((x, i) => termCard(Object.assign({}, x, { key: "T:" + tid + "#" + i }))).join("");
 };
 
 /* ========== 8. 练习 ========== */
@@ -917,7 +966,7 @@ PAGES.favs = function (box) {
   let h = "";
   if (ps.length) {
     h += '<div class="sec"><span class="t">句型模板</span><span class="l"></span><span class="n">' + ps.length + "</span></div>";
-    ps.forEach(p => h += patCard(p, { from: true }));
+    ps.forEach(p => h += patCard(p, { from: true, fold: false }));
   }
   if (ls.length) { h += '<div class="sec"><span class="t">句子</span><span class="l"></span><span class="n">' + ls.length + "</span></div>"; ls.forEach((l, i) => h += lineCard(l, "f" + i)); }
   if (ts.length) { h += '<div class="sec"><span class="t">专业词</span><span class="l"></span><span class="n">' + ts.length + "</span></div>"; ts.forEach(t => h += termCard(t)); }

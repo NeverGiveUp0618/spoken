@@ -159,6 +159,26 @@ input{font-family:inherit}
 .pmeta{font-size:11.5px;color:var(--ink3);margin-top:10px;line-height:1.85}
 .pmeta b{color:var(--ink2);font-weight:600}
 
+
+/* ===== 折叠（内容多的模块默认收起）===== */
+.foldhead{display:block;width:100%;text-align:left;cursor:pointer}
+.foldarrow{color:var(--ink3);transition:transform .22s;flex:none}
+.foldarrow .i{width:16px;height:16px}
+.open .foldarrow{transform:rotate(90deg);color:var(--acc)}
+.pcard.fold{padding:13px 14px}
+.pcard.fold .pbody{display:none}
+.pcard.fold.open .pbody{display:block}
+.pcard.fold .ppat{font-size:17px;line-height:1.5}
+.pcard.fold.open .ppat{font-size:19.5px}
+.pcard.fold .pzh{font-size:12.5px;margin-top:5px}
+.pcard.fold.open .pzh{font-size:14px}
+.pcard.fold .slot{min-width:52px;font-size:.92em}
+.tcard.fold .tdef,.tcard.fold .tnote{display:none}
+.tcard.fold.open .tdef,.tcard.fold.open .tnote{display:block}
+.secbtn{font-size:11px;color:var(--ink3);padding:4px 10px;border-radius:20px;
+  background:var(--card3);white-space:nowrap;flex:none}
+.secbtn:active{background:var(--acc-dim);color:var(--acc)}
+
 /* ===== 句子卡 ===== */
 .lcard{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
   padding:14px 15px 12px;margin-bottom:11px}
@@ -379,6 +399,6 @@ input{font-family:inherit}
 
 <script src="audio/manifest.js?v=1"></script>
 <script src="data.js?v=3"></script>
-<script src="app.js?v=3"></script>
+<script src="app.js?v=4"></script>
 </body>
 </html>
