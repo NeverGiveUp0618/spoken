@@ -48,7 +48,44 @@ function dueList() {
 }
 function learnedCount() { return Object.keys(SRS).filter(k => SRS[k].box >= 3).length; }
 
-/* ========== 2. 发音（美式优先） ========== */
+/* ========== 2. 发音 ==========
+ * 主通道：预合成的 mp3（tools/gen_audio.py 生成，AUDIO_MAP 是索引）。
+ * 为什么不直接用 speechSynthesis：微信内置浏览器（安卓 X5 / iOS WKWebView）
+ * 基本不支持它，点了没声音——这正是用户在微信里打开时遇到的问题。
+ * 系统 TTS 只作兜底：mp3 里没有的文本，或播放被拦截时才用。
+ */
+const AUD = typeof Audio !== "undefined" ? new Audio() : null;
+if (AUD) { AUD.preload = "auto"; }
+const SILENT_WAV = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YQAAAAA=";
+
+function audioFile(text) {
+  if (typeof AUDIO_MAP === "undefined") return null;
+  const t = String(text).trim();
+  return AUDIO_MAP[t] || AUDIO_MAP[t.split(/[（(]/)[0].trim()] || null;
+}
+
+/* iOS / 微信要求：音频必须先在一次真实触摸里「解锁」，否则后续全部静音 */
+let audioReady = false, noSoundWarned = false;
+function unlockAudio() {
+  if (audioReady) return;
+  audioReady = true;
+  try {
+    if (AUD) { AUD.src = SILENT_WAV; const p = AUD.play(); if (p && p.catch) p.catch(() => {}); }
+  } catch (e) {}
+  try {
+    const u = new SpeechSynthesisUtterance(" ");
+    u.volume = 0.01; u.lang = "en-US";
+    speechSynthesis.speak(u); pickVoice();
+  } catch (e) {}
+}
+document.addEventListener("touchend", unlockAudio, { passive: true });
+document.addEventListener("click", unlockAudio);
+/* 微信 iOS 里 JSBridge 就绪后再解锁一次，成功率更高 */
+document.addEventListener("WeixinJSBridgeReady", unlockAudio);
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) { try { if (AUD) AUD.pause(); speechSynthesis.cancel(); } catch (e) {} }
+});
+
 let VOICE = null;
 function pickVoice() {
   if (!window.speechSynthesis) return;
@@ -59,13 +96,39 @@ function pickVoice() {
   VOICE = vs.find(v => /en[-_]US/i.test(v.lang)) || vs.find(v => /^en/i.test(v.lang)) || null;
 }
 if (window.speechSynthesis) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+
+/* 主入口：先 mp3，不行才系统 TTS */
 function say(text, slow) {
-  if (!window.speechSynthesis) return toast("这个浏览器不支持朗读");
-  speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(String(text).replace(/—/g, ",").replace(/\.\.\./g, " "));
-  u.lang = "en-US"; if (VOICE) u.voice = VOICE;
-  u.rate = slow || CFG.slow ? 0.62 : 0.94; u.pitch = 1;
-  speechSynthesis.speak(u);
+  unlockAudio();
+  const f = audioFile(text);
+  if (AUD && f) {
+    try {
+      AUD.pause();
+      AUD.src = "audio/" + f;
+      AUD.playbackRate = slow || CFG.slow ? 0.65 : 1;
+      AUD.currentTime = 0;
+      const p = AUD.play();
+      if (p && p.catch) p.catch(() => sayTTS(text, slow));
+      return;
+    } catch (e) {}
+  }
+  sayTTS(text, slow);
+}
+function sayTTS(text, slow) {
+  if (!("speechSynthesis" in window)) return noSound();
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(String(text).replace(/—/g, ",").replace(/\.\.\./g, " "));
+    u.lang = "en-US"; if (VOICE) u.voice = VOICE;
+    u.rate = slow || CFG.slow ? 0.62 : 0.94; u.pitch = 1;
+    u.onerror = noSound;
+    speechSynthesis.speak(u);
+  } catch (e) { noSound(); }
+}
+function noSound() {
+  if (noSoundWarned) return;
+  noSoundWarned = true;
+  toast("这句还没有录音，且当前浏览器不支持朗读");
 }
 
 /* ========== 3. 小工具 ========== */
@@ -782,9 +845,10 @@ PAGES.me = function (box) {
   h += '<button class="mrow" id="qn"><span class="ib">' + ic("sliders", "sm") + '</span><span class="tx">' +
     '<div class="nm">每轮题量</div><div class="ds">点击切换 5 / 10 / 20</div></span>' +
     '<span class="vl">' + CFG.qnum + " 题</span></button>";
-  h += '<div class="mrow" style="cursor:default"><span class="ib">' + ic("sound", "sm") + '</span><span class="tx">' +
-    '<div class="nm">朗读声音</div><div class="ds">' + (VOICE ? esc(VOICE.name) : "系统默认") + "</div></span>" +
-    '<span class="vl">美音</span></div>';
+  const nAud = typeof AUDIO_MAP === "undefined" ? 0 : Object.keys(AUDIO_MAP).length;
+  h += '<button class="mrow" data-go="soundcheck"><span class="ib">' + ic("sound", "sm") + '</span><span class="tx">' +
+    '<div class="nm">发音自检</div><div class="ds">听不到声音？点这里测一下</div></span>' +
+    '<span class="vl">' + nAud + " 条录音</span></button>";
   h += '<button class="mrow" id="clr"><span class="ib">' + ic("trash", "sm") + '</span><span class="tx">' +
     '<div class="nm">清空学习记录</div><div class="ds">收藏、进度、复习安排全部重置</div></span>' +
     '<span class="vl red">清空</span></button>';
@@ -805,6 +869,42 @@ PAGES.me = function (box) {
     toast("已清空"); render();
   };
 };
+
+PAGES.soundcheck = function (box, arg) {
+  setTitle("发音自检", "SOUND CHECK");
+  const nAud = typeof AUDIO_MAP === "undefined" ? 0 : Object.keys(AUDIO_MAP).length;
+  const demo = "Could I have some water, please?";
+  const hasMp3 = !!audioFile(demo);
+  const wx = /MicroMessenger/i.test(navigator.userAgent);
+  box.innerHTML =
+    '<div class="hero"><h3>' + ic("sound") + "点下面的按钮，应该能听到一句英文</h3>" +
+    "<p>本站发音走的是预先录好的 mp3，不依赖手机的语音引擎，" +
+    "所以在微信里打开也能出声。" + (wx ? "当前正是在微信里打开的。" : "") + "</p></div>" +
+    '<div class="lcard" style="margin-top:14px"><div class="len">' + esc(demo) + "</div>" +
+    '<div class="lzh">能给我一杯水吗？</div>' +
+    '<div class="btnrow"><button class="btn main" id="t1">' + ic("sound") + "播放</button>" +
+    '<button class="btn gh" id="t2">' + ic("slow") + "慢速</button></div></div>" +
+    '<div class="sec"><span class="t">状态</span><span class="l"></span></div>' +
+    '<div class="mrow" style="cursor:default"><span class="ib">' + ic("check", "sm") + '</span>' +
+      '<span class="tx"><div class="nm">录音库</div><div class="ds">站内预合成的英文发音</div></span>' +
+      '<span class="vl">' + nAud + " 条</span></div>" +
+    '<div class="mrow" style="cursor:default"><span class="ib">' + ic(hasMp3 ? "check" : "close", "sm") + '</span>' +
+      '<span class="tx"><div class="nm">这句用哪个通道</div><div class="ds">' +
+      (hasMp3 ? "预合成 mp3（微信可用）" : "系统语音合成（微信里可能没声音）") + "</div></span>" +
+      '<span class="vl' + (hasMp3 ? "" : " red") + '">' + (hasMp3 ? "mp3" : "TTS") + "</span></div>" +
+    '<div class="mrow" style="cursor:default"><span class="ib">' + ic("sliders", "sm") + '</span>' +
+      '<span class="tx"><div class="nm">系统语音兜底</div><div class="ds">' +
+      (VOICE ? esc(VOICE.name) : window.speechSynthesis ? "有引擎但没挑到英文声音" : "本浏览器不支持") + "</div></span></div>" +
+    '<div class="empty" style="font-size:12px;padding:22px 8px 0;text-align:left;line-height:2">' +
+      "还是听不到？按顺序排查：<br>" +
+      "1. 手机侧面的静音键关了吗（iPhone 静音时网页声音也没有）<br>" +
+      "2. 音量调到一半以上<br>" +
+      "3. 在微信里点右上角「···」→ 在浏览器中打开<br>" +
+      "4. 换 Safari 或 Chrome 打开同一个网址</div>";
+  box.querySelector("#t1").onclick = () => say(demo);
+  box.querySelector("#t2").onclick = () => say(demo, true);
+};
+
 function swRow(k, icon, nm, ds) {
   return '<button class="mrow" data-sw="' + k + '"><span class="ib">' + ic(icon, "sm") + "</span>" +
     '<span class="tx"><div class="nm">' + nm + '</div><div class="ds">' + ds + "</div></span>" +

@@ -31,7 +31,7 @@ Could I have  [ 想要的东西 ]  , please?
 
 ## 功能
 
-- **点读**：美音朗读，可切慢速；场景页顶部可连播
+- **点读**：美音朗读，可切慢速；场景页顶部可连播。发音走**预合成 mp3**（1186 条），不依赖手机语音引擎，所以**微信里打开也能出声**
 - **今日五句**：每天从最高频句子里挑五句
 - **五种练习，全部客观判分**
   - **模板填空** — 给模板和要表达的意思，选对的词填进空里
@@ -54,7 +54,9 @@ Could I have  [ 想要的东西 ]  , please?
 index.html   界面、样式、SVG 图标 sprite
 app.js       全部逻辑，不写死任何句子
 data.js      唯一内容源：GROUPS / SCENES（含 pat 模板）/ PATTERNS / TERMSETS
-sw.js        离线缓存
+sw.js        离线缓存（不预缓存 mp3）
+audio/       预合成发音 mp3+ manifest.js 索引
+tools/gen_audio.py  用 edge-tts 生成发音（增量，只补缺的）
 tests/test.js    内容自检（结构 / 频率排序 / 模板占位符 / 中英混排 / 美式口径 / 图标有效性 / 缓存版本号）
 tests/smoke.js   jsdom 交互冒烟测试（走完主要路径，含模板点词填空）
 ```
@@ -67,6 +69,15 @@ tests/smoke.js   jsdom 交互冒烟测试（走完主要路径，含模板点词
 node tests/test.js && node tests/smoke.js
 ```
 
+**改了英文内容后必须重跑发音生成**，否则新句子在微信里没声音：
+
+```bash
+.venv/bin/python tools/gen_audio.py          # 增量，只补缺的
+.venv/bin/python tools/gen_audio.py --clean  # 顺便清掉已删内容的旧音频
+```
+
+（首次需要 `python3 -m venv .venv && .venv/bin/pip install edge-tts`）
+
 **改完必须同时 bump 三处版本号**（否则手机上看不到新版本）：`sw.js` 的 `CACHE`、`index.html` 与 `sw.js` 里的 `?v=`。测试会校验后两处是否一致。
 
 模板写法约束（测试会卡）：
@@ -77,5 +88,6 @@ node tests/test.js && node tests/smoke.js
 
 ## 已知边界
 
-- 跟读打分依赖浏览器语音识别（Chrome / Safari 支持）。不支持的浏览器自动降级成自评。
-- 朗读用系统 TTS，优先挑 en-US 声音；不同设备音色不同。
+- 跟读打分依赖浏览器语音识别（Chrome / Safari 支持）。**微信内置浏览器不支持语音识别**，跟读会自动降级成「念顺了 / 不太顺」自评；发音不受影响（走 mp3）。
+- mp3 里没有的文本（例句的「对方会说」等）退回系统 TTS，微信里这部分可能没声音。
+- 「我的 → 发音自检」可以当场确认走的是哪条通道。

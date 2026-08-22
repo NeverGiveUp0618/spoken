@@ -123,6 +123,36 @@ const appTxt = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8");
 [...appTxt.matchAll(/ic\("([a-z]+)"/g)].forEach(m =>
   ok(ICONS.has(m[1]), "app.js 用了不存在的图标：" + m[1]));
 
+
+sec("发音覆盖（微信里全靠这些 mp3）");
+const audDir = path.join(__dirname, "..", "audio");
+let AUDIO_MAP = null;
+if (fs.existsSync(path.join(audDir, "manifest.js"))) {
+  const src = fs.readFileSync(path.join(audDir, "manifest.js"), "utf8");
+  AUDIO_MAP = JSON.parse(src.slice(src.indexOf("{"), src.lastIndexOf("}") + 1));
+}
+ok(!!AUDIO_MAP, "audio/manifest.js 不存在或解析不了 —— 跑 .venv/bin/python tools/gen_audio.py");
+if (AUDIO_MAP) {
+  const need = new Set();
+  SCENES.forEach(sc => {
+    sc.lines.forEach(l => need.add(l.en));
+    (sc.pat || []).forEach(p => p.fills.forEach(f => need.add(p.pat.replace("{}", f[0]))));
+  });
+  PATTERNS.forEach(p => p.fills.forEach(f => need.add(p.pat.replace("{}", f[0]))));
+  TERMSETS.forEach(t => t.terms.forEach(x => need.add(x.en)));
+  const missing = [...need].filter(t => !AUDIO_MAP[t]);
+  ok(missing.length === 0, "有 " + missing.length + " 条没有录音，微信里点了会没声音，例如：" + missing.slice(0, 3).join(" / "));
+  const noFile = Object.values(AUDIO_MAP).filter(f => !fs.existsSync(path.join(audDir, f)));
+  ok(noFile.length === 0, "manifest 里有 " + noFile.length + " 条指向不存在的 mp3");
+  const html = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
+  ok(/audio\/manifest\.js/.test(html), "index.html 没引入 audio/manifest.js");
+  const app = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8");
+  ok(/AUDIO_MAP/.test(app) && /SILENT_WAV/.test(app), "app.js 没走 mp3 通道或缺静音解锁");
+  ok(/WeixinJSBridgeReady/.test(app), "app.js 缺微信 JSBridge 解锁");
+  const sw = fs.readFileSync(path.join(__dirname, "..", "sw.js"), "utf8");
+  ok(!/\.mp3/.test(sw), "sw.js 不该预缓存 mp3（近千个文件会拖垮首屏）");
+}
+
 sec("引用完整性（app.js / index.html）");
 const app = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8");
 const html = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");

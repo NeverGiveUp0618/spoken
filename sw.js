@@ -1,5 +1,6 @@
-const CACHE = "spoken-v2";
-const CORE = ["./", "./index.html", "./data.js?v=2", "./app.js?v=2", "./manifest.json"];
+const CACHE = "spoken-v3";
+// 音频文件不进预缓存：近千个 mp3 十几兆，首屏全拉会卡；改成播放过的自动进缓存
+const CORE = ["./", "./index.html", "./data.js?v=3", "./app.js?v=3", "./manifest.json", "./audio/manifest.js?v=1"];
 self.addEventListener("install", e => e.waitUntil(
   caches.open(CACHE).then(c => Promise.all(CORE.map(u => c.add(u).catch(() => {})))).then(() => self.skipWaiting())
 ));
