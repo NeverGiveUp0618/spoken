@@ -124,6 +124,22 @@ const appTxt = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8");
   ok(ICONS.has(m[1]), "app.js 用了不存在的图标：" + m[1]));
 
 
+sec("对方回答（听力素材）");
+let nReply = 0, nSplit = 0;
+SCENES.forEach(s => s.lines.forEach((l, i) => {
+  const at = s.id + "#" + i;
+  if (!l.reply || !/[a-zA-Z]/.test(l.reply)) return;
+  nReply++;
+  ok(!!l.rz, at + " 对方回答缺中文 rz（听力题要用）");
+  if (!l.rz) return;
+  ok(/[\u4e00-\u9fa5]/.test(l.rz), at + " rz 里没有中文：" + l.rz);
+  const en = l.reply.split(" / "), zh = l.rz.split("/ ");
+  ok(en.length === zh.length, at + " 英文 " + en.length + " 句、中文 " + zh.length + " 句，对不上");
+  nSplit += en.length;
+  en.forEach(e => ok(!/[\u4e00-\u9fa5]/.test(e), at + " 对方回答英文里混入中文：" + e));
+}));
+ok(nReply > 100, "对方回答条数太少");
+
 sec("发音覆盖（微信里全靠这些 mp3）");
 const audDir = path.join(__dirname, "..", "audio");
 let AUDIO_MAP = null;
@@ -173,6 +189,7 @@ const nT = TERMSETS.reduce((a, t) => a + t.terms.length, 0);
 const nP = allPats.length;
 const nF = allPats.reduce((a, x) => a + x.p.fills.length, 0);
 console.log("\n" + "-".repeat(46));
+console.log("对方回答 " + nReply + " 条（拆句 " + nSplit + "）");
 console.log("分组 " + GROUPS.length + " · 场景 " + SCENES.length + " · 模板 " + nP +
   "（可组合 " + nF + " 句） · 例句 " + nL + " · 专业词 " + nT);
 console.log(fail ? "✗ 通过 " + pass + " 项，失败 " + fail + " 项" : "✓ 全部通过（" + pass + " 项）");

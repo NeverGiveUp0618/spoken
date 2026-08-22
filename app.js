@@ -13,6 +13,16 @@ PATTERNS.forEach((p, i) => PATS.push(Object.assign({}, p, { core: true, key: "P:
 SCENES.forEach(sc => (sc.pat || []).forEach((p, i) => PATS.push(
   Object.assign({}, p, { core: false, sid: sc.id, sname: sc.name, group: sc.group, key: "P:" + sc.id + "#" + i, from: sc.name })
 )));
+const REPLIES = [];   // 听力素材：对方的回答，按 " / " 拆成单句
+SCENES.forEach(sc => sc.lines.forEach((l, i) => {
+  if (!l.reply || !/[a-zA-Z]/.test(l.reply) || !l.rz) return;
+  const en = l.reply.split(" / "), zh = l.rz.split("/ ");
+  en.forEach((e, j) => REPLIES.push({
+    en: e.trim(), zh: (zh[j] || zh[0] || "").trim(),
+    ask: l.en, askZh: l.zh, sname: sc.name,
+    key: "R:" + sc.id + "#" + i + "." + j
+  }));
+}));
 const TERMS = [];
 TERMSETS.forEach(t => t.terms.forEach((x, i) => TERMS.push(
   Object.assign({}, x, { tid: t.id, tname: t.name, key: "T:" + t.id + "#" + i })
@@ -307,7 +317,10 @@ function lineCard(l, idx) {
     '<div class="lzh">' + esc(l.zh) + "</div>" +
     '<div class="lmore" id="m' + idx + '">' +
       '<div class="r"><span class="k">什么时候用</span><span class="v">' + esc(l.tip) + "</span></div>" +
-      (l.reply ? '<div class="r"><span class="k">对方会说</span><span class="v"><em>' + esc(l.reply) + "</em></span></div>" : "") +
+      (l.reply ? '<div class="r"><span class="k">对方会说</span><span class="v"><em>' + esc(l.reply) + "</em>" +
+        (l.rz ? '<br><span style="color:var(--ink3);font-size:12px">' + esc(l.rz) + "</span>" : "") +
+        (/[a-zA-Z]/.test(l.reply) ? ' <button class="iconbtn" style="width:24px;height:24px;display:inline-flex;vertical-align:middle" data-say="' +
+          esc(l.reply.split(" / ")[0]) + '">' + ic("sound", "sm") + "</button>" : "") + "</span></div>" : "") +
       (l.alt ? '<div class="r"><span class="k">换个说法</span><span class="v"><em>' + esc(l.alt) + "</em></span></div>" : "") +
     "</div>" +
     '<button class="togmore" data-more="m' + idx + '">' + ic("next") + "用法</button>" +
@@ -346,7 +359,10 @@ PAGES.home = function (box) {
   let h = '<div class="hero">' +
     "<h3>" + ic("target") + "今日五句</h3>" +
     "<p>从最高频的句子里挑五句，念熟就能出门。今天已练 " + t.done + " 题。</p>" +
-    '<button class="go" data-go="daily">开始' + ic("next") + "</button></div>" +
+    '<div style="display:flex;gap:9px;flex-wrap:wrap">' +
+      '<button class="go" data-go="daily">开始' + ic("next") + "</button>" +
+      '<button class="go" style="background:var(--card3);color:var(--ink)" data-go="drill-run" data-arg="sayit">' +
+        ic("mic") + "秒答</button></div></div>" +
     '<div class="stats">' +
       '<div class="stat"><b>' + PATS.length + "</b><span>句型模板</span></div>" +
       '<div class="stat"><b>' + learnedCount() + "</b><span>已掌握</span></div>" +
@@ -539,11 +555,13 @@ PAGES.drill = function (box) {
     ((LOG[today()] || {}).done || 0) + " 题已答，正确 " +
     ((LOG[today()] || {}).right || 0) + " 题。待复习 " + due + " 条。</p></div>";
   h += '<div class="sec"><span class="t">选个练法</span><span class="l"></span></div><div class="modes">';
+  h += mode("", "mic", "秒答", "看中文，自己出声说，再翻答案对一遍。走路上也能练", "sayit");
+  h += mode("w", "sound", "听懂对方", "只放声音不给字，听对方那句是什么意思", "listen");
   h += mode("", "slot", "模板填空", "给你模板和要表达的意思，选对的词填进空里", "fill");
   h += mode("b", "repeat", "复习到期的", "按遗忘曲线挑，答对推远，答错拉近", "review", due ? due + " 条到期" : "暂时没有");
   h += mode("", "pen", "中译英", "看中文说英文，四选一，客观判分", "quiz");
   h += mode("w", "blocks", "连词成句", "打乱的单词按顺序点回去，练语序", "build");
-  h += mode("", "mic", "跟读打分", "对着麦克风念，识别后逐词比对给分", "shadow");
+  h += mode("", "blocks", "跟读打分", "对着麦克风念，逐词比对给分（微信里不支持，用 Safari 开）", "shadow");
   h += mode("b", "yinyang", "专业单词", "易经文化行业词，中英互测", "word");
   h += "</div>";
   h += '<div class="sec"><span class="t">练哪些</span><span class="l"></span></div>';
@@ -569,6 +587,20 @@ function mode(cls, icon, nm, ds, arg, tagv) {
 function poolOf(arg) {
   const [mode, scope] = String(arg).split(":");
   let pool;
+  if (mode === "listen") {
+    pool = scope && scope.indexOf("g-") === 0
+      ? REPLIES.filter(r => (SCENE_OF[r.key.slice(2).split("#")[0]] || {}).group === scope.slice(2)) : REPLIES;
+    return { mode, pool };
+  }
+  if (mode === "sayit") {
+    const base = scope && SCENE_OF[scope] ? LINES.filter(l => l.sid === scope)
+      : scope && scope.indexOf("g-") === 0 ? LINES.filter(l => l.group === scope.slice(2))
+      : LINES.concat(PATS.reduce((a, p) => a.concat(p.fills.map(f => ({
+          en: p.pat.replace("{}", f[0]), zh: p.zh.replace("{}", f[1]),
+          sname: p.from, key: p.key + ":" + f[0]
+        }))), []));
+    return { mode, pool: base };
+  }
   if (mode === "fill") {
     pool = scope && SCENE_OF[scope] ? PATS.filter(p => p.sid === scope)
       : scope && scope.indexOf("g-") === 0 ? PATS.filter(p => p.group === scope.slice(2))
@@ -590,7 +622,8 @@ PAGES["drill-run"] = function (box, arg) {
   if (!pool.length) { box.innerHTML = '<div class="empty">这里还没有内容<br>先去场景里收藏几句，或等复习到期</div>'; setTitle("练习"); return; }
   const n = Math.min(CFG.qnum, pool.length);
   Q = { mode, arg, list: shuffle(pool).slice(0, n), i: 0, right: 0, box };
-  setTitle({ review: "复习", quiz: "中译英", build: "连词成句", shadow: "跟读打分", word: "专业单词", fill: "模板填空" }[mode] || "练习", "");
+  setTitle({ review: "复习", quiz: "中译英", build: "连词成句", shadow: "跟读打分",
+    word: "专业单词", fill: "模板填空", sayit: "秒答", listen: "听懂对方" }[mode] || "练习", "");
   step();
 };
 function step() {
@@ -599,6 +632,7 @@ function step() {
   const item = Q.list[Q.i];
   const isTerm = item.key.indexOf("T:") === 0;
   const isPat = item.key.indexOf("P:") === 0;
+  const isReply = item.key.indexOf("R:") === 0;
   let m = Q.mode;
   if (m === "review") m = isPat ? "fill" : isTerm ? "word" : (Math.random() < 0.5 ? "quiz" : "build");
   if (isPat) m = "fill";                       // 模板只出填空题
@@ -609,6 +643,8 @@ function step() {
 
   const bar = '<div class="qbar"><div class="pg"><i style="width:' + (Q.i / Q.list.length * 100) + '%"></i></div>' +
     '<span class="nm">' + (Q.i + 1) + " / " + Q.list.length + "</span></div>";
+  if (Q.mode === "sayit") return qSayIt(b, bar, item);
+  if (Q.mode === "listen" || isReply) return qListen(b, bar, item);
   ({ quiz: qQuiz, build: qBuild, shadow: qShadow, word: qWord, fill: qFill })[m](b, bar, item);
 }
 function nextBtn(fn) {
@@ -619,6 +655,71 @@ function answered(ok, key) {
   grade(key, ok); if (ok) Q.right++;
 }
 
+
+
+/* 秒答：看中文 → 自己出声说 → 翻答案对一遍。全程一根手指，微信里也能用 */
+function qSayIt(b, bar, item) {
+  b.innerHTML = bar +
+    '<div class="qbox" style="min-height:150px">' +
+      '<div class="qh">' + esc(item.sname || "") + " · 用英语怎么说</div>" +
+      '<div class="qz" style="font-size:23px">' + esc(item.zh) + "</div>" +
+    "</div>" +
+    '<button class="btn main" id="flip" style="width:100%;padding:16px">' + ic("next") + "说完了，看答案</button>" +
+    '<div class="fb" id="fb"></div>';
+  b.querySelector("#flip").onclick = () => {
+    if (b.dataset.done) return; b.dataset.done = 1;
+    say(item.en);
+    b.querySelector("#flip").style.display = "none";
+    const fb = $("#fb");
+    fb.className = "fb on ok";
+    fb.innerHTML =
+      '<div class="en" style="font-size:20px;text-align:center;margin:4px 0 10px">' + esc(item.en) + "</div>" +
+      '<div class="btnrow" style="margin:0">' +
+        '<button class="btn gh" data-say="' + esc(item.en) + '">' + ic("sound") + "再听</button>" +
+        '<button class="btn gh" data-slow="' + esc(item.en) + '">' + ic("slow") + "慢速</button>" +
+      "</div>" +
+      '<div class="btnrow"><button class="btn gh" id="miss" style="color:var(--warm)">卡壳了</button>' +
+        '<button class="btn main" id="got">说出来了</button></div>';
+    document.getElementById("got").onclick = () => { answered(true, item.key); Q.i++; step(); };
+    document.getElementById("miss").onclick = () => { answered(false, item.key); Q.i++; step(); };
+  };
+  delete b.dataset.done;
+}
+
+/* 听懂对方：只放声音不给字，选它是什么意思 */
+function qListen(b, bar, item) {
+  const wrongs = shuffle(REPLIES.filter(r => r.key !== item.key && r.zh !== item.zh)).slice(0, 3);
+  const opts = shuffle([item].concat(wrongs));
+  b.innerHTML = bar +
+    '<div class="qbox" style="min-height:150px">' +
+      '<div class="qh">' + esc(item.sname) + " · 对方回你这么一句</div>" +
+      '<button class="mic" id="rep" style="width:76px;height:76px;margin:6px auto 4px">' + ic("sound") + "</button>" +
+      '<div class="qh">点喇叭重听，先别看选项</div>' +
+    "</div>" +
+    '<div class="opts">' + opts.map((o, i) =>
+      '<button class="opt" data-i="' + i + '">' + esc(o.zh) + "</button>").join("") + "</div>" +
+    '<div class="fb" id="fb"></div>';
+  setTimeout(() => say(item.en), 240);
+  b.querySelector("#rep").onclick = () => say(item.en);
+  b.querySelectorAll(".opt").forEach((el, i) => el.onclick = () => {
+    if (b.dataset.done) return; b.dataset.done = 1;
+    const ok = opts[i].key === item.key;
+    b.querySelectorAll(".opt").forEach((x, j) => {
+      if (opts[j].key === item.key) x.classList.add("right");
+      else if (j === i) x.classList.add("wrong"); else x.classList.add("dim");
+    });
+    answered(ok, item.key);
+    $("#fb").className = "fb on " + (ok ? "ok" : "no");
+    $("#fb").innerHTML = '<div class="t">' + ic(ok ? "check" : "close", "sm") + (ok ? "听对了" : "它其实是说") + "</div>" +
+      '<div class="en">' + esc(item.en) + '</div><div class="zh">' + esc(item.zh) + "</div>" +
+      '<div class="zh" style="margin-top:8px;color:var(--ink3)">这是在你说完这句之后：<br>' +
+        esc(item.ask) + " —— " + esc(item.askZh) + "</div>" +
+      '<div class="btnrow" style="margin-top:10px"><button class="btn gh" data-slow="' + esc(item.en) + '">' +
+        ic("slow") + "慢速再听</button></div>" + nextBtn();
+    bindNext();
+  });
+  delete b.dataset.done;
+}
 
 /* 模板填空：给模板 + 要表达的意思，选正确的词填进空里 */
 function qFill(b, bar, item) {

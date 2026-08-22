@@ -34,7 +34,12 @@ vm.runInContext(fs.readFileSync(process.argv[1],"utf8"),ctx);
 const out=vm.runInContext(`(function(){
   const s=new Set();
   SCENES.forEach(sc=>{
-    sc.lines.forEach(l=>{ s.add(l.en); if(l.reply&&/[a-zA-Z]/.test(l.reply)) s.add(l.reply); if(l.alt) s.add(l.alt); });
+    sc.lines.forEach(l=>{
+      s.add(l.en);
+      // 对方回答里的 " / " 是两种可能的答法，拆开分别合成，否则 TTS 会把斜杠念出来
+      if(l.reply&&/[a-zA-Z]/.test(l.reply)) l.reply.split(" / ").forEach(r=>s.add(r.trim()));
+      if(l.alt) s.add(l.alt);
+    });
     (sc.pat||[]).forEach(p=>p.fills.forEach(f=>s.add(p.pat.replace("{}",f[0]))));
   });
   PATTERNS.forEach(p=>p.fills.forEach(f=>s.add(p.pat.replace("{}",f[0]))));
