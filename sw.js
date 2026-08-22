@@ -1,5 +1,5 @@
-const CACHE = "spoken-v1";
-const CORE = ["./", "./index.html", "./data.js?v=1", "./app.js?v=1", "./manifest.json"];
+const CACHE = "spoken-v2";
+const CORE = ["./", "./index.html", "./data.js?v=2", "./app.js?v=2", "./manifest.json"];
 self.addEventListener("install", e => e.waitUntil(
   caches.open(CACHE).then(c => Promise.all(CORE.map(u => c.add(u).catch(() => {})))).then(() => self.skipWaiting())
 ));
