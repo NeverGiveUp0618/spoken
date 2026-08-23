@@ -33,7 +33,7 @@ try {
   // 末尾挂个钩子：这些都是 const 声明，不会自动出现在 window 上，
   // 而下一次 w.eval 又是新作用域，看不见它们，只能在同一次 eval 里导出。
   w.eval(["audio/manifest.js", "data.js", "app.js"].map(f => fs.readFileSync(path.join(ROOT, f), "utf8")).join("\n;\n") +
-    "\n;window.__t = { flush: __flushTimers, audioMap: (typeof AUDIO_MAP === 'undefined' ? null : AUDIO_MAP), get aud(){ return AUD; }, say: say };");
+    "\n;window.__t = { flush: __flushTimers, termsets: TERMSETS, audioMap: (typeof AUDIO_MAP === 'undefined' ? null : AUDIO_MAP), get aud(){ return AUD; }, say: say };");
 } catch (e) { errs.push("执行报错：" + e.message); }
 const d = w.document;
 const q = s => d.querySelector(s);
@@ -157,15 +157,16 @@ console.log("[单词本]");
 step("切到单词本", () => click(d.querySelector('.tab[data-tab="terms"]')));
 ok(q("#v-terms .wrap").innerHTML.indexOf("用英语讲你这一行") >= 0, "单词本首页没渲染");
 step("进分类", () => click(d.querySelector('#v-terms .gcard[data-arg="fengshui"]')));
-ok(d.querySelectorAll("#v-terms .tcard").length === 11, "风水词条数不对：" + d.querySelectorAll("#v-terms .tcard").length);
+const nFs = w.__t.termsets.find(t => t.id === "fengshui").terms.length;
+ok(d.querySelectorAll("#v-terms .tcard").length === nFs, "风水词条数不对：" + d.querySelectorAll("#v-terms .tcard").length + "，应为 " + nFs);
 ok(q("#v-terms .ten").textContent.indexOf("feng shui") === 0, "词条渲染异常");
-ok(d.querySelectorAll("#v-terms .tcard.fold").length === 11, "单词本词条没折叠");
+ok(d.querySelectorAll("#v-terms .tcard.fold").length === nFs, "单词本词条没折叠");
 ok(d.querySelectorAll("#v-terms .tcard.open").length === 0, "单词本默认不该展开");
 const t0 = q("#v-terms .tcard");
 step("展开词条", () => click(t0.querySelector(".foldhead")));
 ok(t0.classList.contains("open"), "词条点了没展开");
 step("单词本全部展开", () => click(q("#v-terms .secbtn")));
-ok(d.querySelectorAll("#v-terms .tcard.open").length === 11, "单词本全部展开没生效");
+ok(d.querySelectorAll("#v-terms .tcard.open").length === nFs, "单词本全部展开没生效");
 
 console.log("[练习：秒答]");
 step("切到练习", () => click(d.querySelector('.tab[data-tab="drill"]')));
