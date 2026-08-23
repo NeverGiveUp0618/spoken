@@ -1,6 +1,6 @@
-const CACHE = "spoken-v8";
+const CACHE = "spoken-v9";
 // 音频文件不进预缓存：近千个 mp3 十几兆，首屏全拉会卡；改成播放过的自动进缓存
-const CORE = ["./", "./index.html", "./data.js?v=7", "./app.js?v=8", "./manifest.json", "./audio/manifest.js?v=4"];
+const CORE = ["./", "./index.html", "./data.js?v=7", "./app.js?v=9", "./manifest.json", "./audio/manifest.js?v=4"];
 self.addEventListener("install", e => e.waitUntil(
   caches.open(CACHE).then(c => Promise.all(CORE.map(u => c.add(u).catch(() => {})))).then(() => self.skipWaiting())
 ));

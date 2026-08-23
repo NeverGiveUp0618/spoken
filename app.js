@@ -1043,7 +1043,24 @@ function recMime() {
   for (const m of ["audio/webm", "audio/mp4", "audio/ogg"]) if (MediaRecorder.isTypeSupported(m)) return m;
   return "";
 }
-function shadowTier() { return SR ? "score" : CAN_REC ? "record" : "rhythm"; }
+/* ⚠️ 永远不自动选「识别判分」档：国产安卓浏览器多是 Chromium 内核，
+ * webkitSpeechRecognition 存在但识别要连 Google 服务器，国内连不上——
+ * 点了麦克风只会一直「在听……」再无下文，等于卡死。
+ * 所以默认走不依赖任何外部服务的录音对比；判分只能手动开，且带超时自救。 */
+function shadowTier() {
+  if (CFG.shadow === "score" && SR) return "score";
+  if (CFG.shadow === "rhythm") return "rhythm";
+  return CAN_REC ? "record" : "rhythm";
+}
+function shadowSwitch(cur) {
+  let h = '<div class="btnrow" style="margin-top:14px">';
+  if (cur !== "record" && CAN_REC) h += '<button class="btn gh" data-shadow="record">' + ic("mic") + "改用录音对比</button>";
+  if (cur !== "rhythm") h += '<button class="btn gh" data-shadow="rhythm">' + ic("play") + "改用节奏跟读</button>";
+  if (cur !== "score" && SR) h += '<button class="btn gh" data-shadow="score">' + ic("chart") + "试试自动判分</button>";
+  return h + "</div>" +
+    (cur === "score" ? '<div class="empty" style="font-size:11.5px;padding:10px 6px 0">' +
+      "自动判分要连国外识别服务，国内经常连不上。没反应就换回录音对比。</div>" : "");
+}
 
 function qShadow(b, bar, item) {
   const tier = shadowTier();
@@ -1055,6 +1072,14 @@ function qShadow(b, bar, item) {
     '<button class="btn gh" data-slow="' + esc(item.en) + '">' + ic("slow") + "慢速</button></div>";
   ({ score: shadowScore, record: shadowRecord, rhythm: shadowRhythm })[tier](b, head, item);
 }
+document.addEventListener("click", e => {
+  const t = e.target.closest("[data-shadow]");
+  if (!t) return;
+  CFG.shadow = t.dataset.shadow; save(KEY.cfg, CFG);
+  toast({ record: "已换成录音对比", rhythm: "已换成节奏跟读", score: "已换成自动判分" }[CFG.shadow]);
+  step();
+});
+
 /* 自评收尾，三档共用 */
 function shadowSelfRate(item, tip) {
   return '<div class="qh" style="text-align:center;margin-top:4px">' + tip + "</div>" +
@@ -1072,15 +1097,26 @@ function shadowScore(b, head, item) {
   b.innerHTML = head +
     '<button class="mic" id="mic">' + ic("mic") + "</button>" +
     '<div class="qh" id="mst" style="text-align:center">点麦克风，念完自动判分</div>' +
-    '<div class="fb" id="fb"></div>';
+    '<div class="fb" id="fb"></div>' + shadowSwitch("score");
   const mic = b.querySelector("#mic"), mst = b.querySelector("#mst");
-  let rec = null, done = false;
+  let rec = null, done = false, guard = null;
   mic.onclick = () => {
     if (done) return;
     if (rec) { try { rec.stop(); } catch (e) {} return; }
     rec = new SR(); rec.lang = "en-US"; rec.interimResults = false; rec.maxAlternatives = 3;
     mic.classList.add("rec"); mic.innerHTML = ic("stop"); mst.textContent = "在听…… 念完点一下停止";
+    // 识别服务连不上时既不回 onresult 也不报错，会一直卡在「在听」，所以自己兜底
+    clearTimeout(guard);
+    guard = setTimeout(() => {
+      if (done) return;
+      try { rec && rec.stop(); } catch (e) {}
+      mic.classList.remove("rec"); mic.innerHTML = ic("mic"); rec = null;
+      mst.innerHTML = "识别一直没反应，多半是连不上识别服务。<br>已自动换成录音对比。";
+      CFG.shadow = CAN_REC ? "record" : "rhythm"; save(KEY.cfg, CFG);
+      setTimeout(step, 1500);
+    }, 9000);
     rec.onresult = ev => {
+      clearTimeout(guard);
       let best = "", bs = -1;
       for (let i = 0; i < ev.results[0].length; i++) {
         const alt = ev.results[0][i].transcript;
@@ -1103,9 +1139,15 @@ function shadowScore(b, head, item) {
       b.querySelector("#again").onclick = () => { done = false; step(); };
     };
     rec.onerror = ev => {
+      clearTimeout(guard);
       mic.classList.remove("rec"); mic.innerHTML = ic("mic"); rec = null;
-      mst.textContent = ev.error === "not-allowed" ? "麦克风被拒绝了，去浏览器设置里允许"
-        : ev.error === "network" ? "识别服务连不上（国内常见），改用录音对比更稳" : "没听清，再试一次";
+      if (ev.error === "not-allowed") { mst.textContent = "麦克风被拒绝了，去浏览器设置里允许"; return; }
+      if (ev.error === "network" || ev.error === "service-not-allowed") {
+        mst.innerHTML = "识别服务连不上（国内常见）。<br>已自动换成录音对比。";
+        CFG.shadow = CAN_REC ? "record" : "rhythm"; save(KEY.cfg, CFG);
+        setTimeout(step, 1500); return;
+      }
+      mst.textContent = "没听清，再试一次";
     };
     rec.onend = () => { mic.classList.remove("rec"); mic.innerHTML = ic("mic"); rec = null; };
     try { rec.start(); } catch (e) { mst.textContent = "启动失败，再点一次"; rec = null; }
@@ -1117,7 +1159,7 @@ function shadowRecord(b, head, item) {
   b.innerHTML = head +
     '<button class="mic" id="mic">' + ic("mic") + "</button>" +
     '<div class="qh" id="mst" style="text-align:center">点一下开始录，念完再点一下停</div>' +
-    '<div class="fb" id="fb"></div>';
+    '<div class="fb" id="fb"></div>' + shadowSwitch("record");
   const mic = b.querySelector("#mic"), mst = b.querySelector("#mst");
   let mr = null, chunks = [], url = null, stream = null;
   const cleanup = () => { if (stream) stream.getTracks().forEach(t => t.stop()); stream = null; };
@@ -1126,9 +1168,9 @@ function shadowRecord(b, head, item) {
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch (e) {
-      mic.classList.add("busy");
-      mst.innerHTML = "拿不到麦克风权限，改成节奏跟读";
-      return shadowRhythm(b, head, item);
+      mst.innerHTML = "拿不到麦克风权限，已换成节奏跟读";
+      CFG.shadow = "rhythm"; save(KEY.cfg, CFG);
+      return setTimeout(step, 1200);
     }
     const mime = recMime();
     try { mr = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream); }
@@ -1139,6 +1181,12 @@ function shadowRecord(b, head, item) {
       cleanup();
       mic.classList.remove("rec"); mic.innerHTML = ic("mic");
       if (url) URL.revokeObjectURL(url);
+      const total = chunks.reduce((a, c) => a + (c.size || 0), 0);
+      if (!total) {   // 有些内核录不出数据，别让用户对着空白按钮发懵
+        mst.innerHTML = "这个浏览器录不出声音，已换成节奏跟读";
+        CFG.shadow = "rhythm"; save(KEY.cfg, CFG);
+        return setTimeout(step, 1400);
+      }
       url = URL.createObjectURL(new Blob(chunks, { type: mime || "audio/webm" }));
       mst.textContent = "";
       $("#fb").className = "fb on ok";
@@ -1169,7 +1217,7 @@ function shadowRhythm(b, head, item) {
   b.innerHTML = head +
     '<button class="mic" id="mic">' + ic("play") + "</button>" +
     '<div class="qh" id="mst" style="text-align:center">点一下：先放原声，留空档给你念，再放一遍</div>' +
-    '<div class="fb" id="fb"></div>';
+    '<div class="fb" id="fb"></div>' + shadowSwitch("rhythm");
   const mic = b.querySelector("#mic"), mst = b.querySelector("#mst");
   const gap = Math.max(1700, item.en.split(/\s+/).length * 460);
   mic.onclick = () => {
@@ -1295,9 +1343,9 @@ PAGES.soundcheck = function (box, arg) {
       '<span class="vl' + (hasMp3 ? "" : " red") + '">' + (hasMp3 ? "mp3" : "TTS") + "</span></div>" +
     '<div class="mrow" style="cursor:default"><span class="ib">' + ic("mic", "sm") + '</span>' +
       '<span class="tx"><div class="nm">跟读走哪档</div><div class="ds">' + ({
-        score: "语音识别可用，能自动逐词判分",
-        record: "没有语音识别，改用录音跟原声对比（微信正常是这档）",
-        rhythm: "既不能识别也不能录音，用节奏跟读"
+        score: "自动判分（你手动开的，连不上会自己换回来）",
+        record: "录音跟原声对比 —— 不依赖任何外部服务，最稳",
+        rhythm: "节奏跟读：原声 → 空档 → 原声，零权限"
       })[shadowTier()] + "</div></span>" +
       '<span class="vl">' + ({ score: "判分", record: "录音", rhythm: "节奏" })[shadowTier()] + "</span></div>" +
     '<div class="mrow" style="cursor:default"><span class="ib">' + ic("sliders", "sm") + '</span>' +
@@ -1309,8 +1357,9 @@ PAGES.soundcheck = function (box, arg) {
       "2. 音量调到一半以上<br>" +
       "3. 在微信里点右上角「···」→ 在浏览器中打开<br>" +
       "4. 换 Safari 或 Chrome 打开同一个网址<br><br>" +
-      "跟读想要自动判分，得用<b>桌面 Chrome</b> 或 <b>iPhone 上的 Safari</b>；" +
-      "微信和多数国产浏览器没有语音识别，会自动改成录音对比。</div>";
+      "跟读默认走<b>录音对比</b>，不连任何外部服务，哪儿都能用。<br>" +
+      "「自动判分」要连国外识别服务，国内经常连不上，所以不默认开；" +
+      "想试可以在跟读界面底部手动切换，卡住会自己换回来。</div>";
   box.querySelector("#t1").onclick = () => say(demo);
   box.querySelector("#t2").onclick = () => say(demo, true);
 };
