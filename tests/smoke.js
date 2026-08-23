@@ -15,6 +15,11 @@ const dom = new JSDOM(fs.readFileSync(path.join(ROOT, "index.html"), "utf8"), {
 });
 const w = dom.window;
 w.speechSynthesis = { getVoices: () => [], cancel() {}, speak() {} };
+// 接管 setTimeout，让测试能一次性把跟读的节奏走完，不用真等
+const __timers = [];
+const __realTimeout = w.setTimeout;
+w.setTimeout = function (fn, ms) { if (ms >= 300) { __timers.push(fn); return 0; } return __realTimeout(fn, ms); };
+w.__flushTimers = function () { for (let i = 0; i < 20 && __timers.length; i++) { const f = __timers.shift(); try { f(); } catch (e) {} } };
 // jsdom 没实现媒体播放，打个桩，顺便记录实际播了哪个文件
 const played = [];
 w.HTMLMediaElement.prototype.play = function () { if (this.src) played.push(this.src); return Promise.resolve(); };
@@ -28,7 +33,7 @@ try {
   // 末尾挂个钩子：这些都是 const 声明，不会自动出现在 window 上，
   // 而下一次 w.eval 又是新作用域，看不见它们，只能在同一次 eval 里导出。
   w.eval(["audio/manifest.js", "data.js", "app.js"].map(f => fs.readFileSync(path.join(ROOT, f), "utf8")).join("\n;\n") +
-    "\n;window.__t = { audioMap: (typeof AUDIO_MAP === 'undefined' ? null : AUDIO_MAP), get aud(){ return AUD; }, say: say };");
+    "\n;window.__t = { flush: __flushTimers, audioMap: (typeof AUDIO_MAP === 'undefined' ? null : AUDIO_MAP), get aud(){ return AUD; }, say: say };");
 } catch (e) { errs.push("执行报错：" + e.message); }
 const d = w.document;
 const q = s => d.querySelector(s);
@@ -231,11 +236,19 @@ step("检查答案", () => click(d.querySelector("#chk")));
 ok(q("#v-drill .fb").className.indexOf("on") >= 0, "连词成句没判分");
 ok(q("#v-drill .fb .en").textContent.length > 3, "没给出正确语序");
 
-console.log("[跟读降级]");
+console.log("[跟读 · 节奏档]");
 step("回练习首页", () => click(d.querySelector('.tab[data-tab="drill"]')));
 step("开始跟读", () => click(d.querySelector('#v-drill .mode[data-arg="shadow"]')));
-ok(!!d.querySelector("#mic"), "没有麦克风按钮");
-ok(q("#mst").innerHTML.indexOf("不支持语音识别") >= 0, "无识别时没降级成自评");
+// jsdom 既没有 SpeechRecognition 也没有 mediaDevices，应落到最低档「节奏跟读」
+ok(!!d.querySelector("#mic"), "跟读没有主按钮");
+ok(q("#mst").textContent.indexOf("先放原声") >= 0, "没降级到节奏跟读：" + q("#mst").textContent);
+ok(!d.querySelector("#good"), "节奏跟读不该一上来就给自评按钮");
+played.length = 0;
+step("开始节奏跟读", () => click(q("#v-drill #mic")));
+ok(played.some(u => /\/audio\/.+\.mp3$/.test(u)), "节奏跟读没播原声");
+ok(q("#mst").textContent.indexOf("听") >= 0, "没进入播放状态");
+step("快进整个节奏", () => w.__t.flush());
+ok(!!d.querySelector("#good") && !!d.querySelector("#bad"), "走完节奏后没给自评按钮");
 step("自评念顺了", () => click(d.querySelector("#good")));
 ok(q("#v-drill .qbar .nm").textContent.trim() === "2 / 10", "自评后没进下一题");
 

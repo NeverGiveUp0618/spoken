@@ -427,11 +427,11 @@ PAGES.daily = function (box) {
   setTitle("今日五句", "DAILY 5");
   const list = seededPick(LINES.filter(l => l.freq === 3), 5, today());
   let h = '<div class="hero" style="margin-bottom:14px"><h3>' + ic("target") + "今天这五句</h3>" +
-    "<p>点喇叭跟着念三遍。念顺了去「练习 → 跟读打分」验收。</p></div>";
+    "<p>点喇叭跟着念三遍。念顺了去「练习 → 跟读」验收。</p></div>";
   list.forEach((l, i) => {
     h += '<div class="sec"><span class="t">' + esc(l.sname) + '</span><span class="l"></span></div>' + lineCard(l, "d" + i);
   });
-  h += '<div class="btnrow"><button class="btn main" data-go="drill-run" data-arg="shadow">' + ic("mic") + "去跟读打分</button></div>";
+  h += '<div class="btnrow"><button class="btn main" data-go="drill-run" data-arg="shadow">' + ic("mic") + "去跟读</button></div>";
   box.innerHTML = h;
 };
 
@@ -705,7 +705,14 @@ PAGES.drill = function (box) {
   h += mode("b", "repeat", "复习到期的", "按遗忘曲线挑，答对推远，答错拉近", "review", due ? due + " 条到期" : "暂时没有");
   h += mode("", "pen", "中译英", "看中文说英文，四选一，客观判分", "quiz");
   h += mode("w", "blocks", "连词成句", "打乱的单词按顺序点回去，练语序", "build");
-  h += mode("", "blocks", "跟读打分", "对着麦克风念，逐词比对给分（微信里不支持，用 Safari 开）", "shadow");
+  h += '<button class="mode" data-go="drill-run" data-arg="shadow"><span class="ib">' + ic("mic", "lg") + "</span>" +
+    '<span class="tx"><div class="nm">跟读 <span class="pill">' +
+    ({ score: "自动判分", record: "录音对比", rhythm: "节奏跟读" })[shadowTier()] + "</span></div>" +
+    '<div class="ds">' + ({
+      score: "对着麦克风念，逐词比对给分",
+      record: "录下你的声音，跟原声来回对比着听",
+      rhythm: "原声 → 留空档给你念 → 再放一遍"
+    })[shadowTier()] + "</div></span></button>";
   h += mode("b", "yinyang", "专业单词", "易经文化行业词，中英互测", "word");
   h += "</div>";
   h += '<div class="sec"><span class="t">练哪些</span><span class="l"></span></div>';
@@ -766,7 +773,7 @@ PAGES["drill-run"] = function (box, arg) {
   if (!pool.length) { box.innerHTML = '<div class="empty">这里还没有内容<br>先去场景里收藏几句，或等复习到期</div>'; setTitle("练习"); return; }
   const n = Math.min(CFG.qnum, pool.length);
   Q = { mode, arg, list: shuffle(pool).slice(0, n), i: 0, right: 0, box };
-  setTitle({ review: "复习", quiz: "中译英", build: "连词成句", shadow: "跟读打分",
+  setTitle({ review: "复习", quiz: "中译英", build: "连词成句", shadow: "跟读",
     word: "专业单词", fill: "模板填空", sayit: "秒答", listen: "听懂对方" }[mode] || "练习", "");
   step();
 };
@@ -1006,7 +1013,14 @@ function qWord(b, bar, item) {
   delete b.dataset.done;
 }
 
-/* 跟读打分 */
+/* ========== 跟读 ==========
+ * 分三档自动选，能力从高到低：
+ *   A 语音识别可用 → 逐词比对打分（Chrome、桌面 Safari）
+ *   B 能录音     → 录下你的声音，跟原声 A/B 对比，用耳朵判（微信里多数可用）
+ *   C 都不行     → 节奏跟读：原声 → 空档 → 原声，跟着念
+ * 微信内置浏览器没有 SpeechRecognition，所以 A 档在微信里一定用不了；
+ * 而且国内 Android Chrome 的识别要连 Google 服务器，也常失败。
+ */
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 function norm(s) { return String(s).toLowerCase().replace(/[^a-z0-9'\s]/g, " ").replace(/\s+/g, " ").trim(); }
 function lcsMark(target, heard) {
@@ -1023,27 +1037,43 @@ function lcsMark(target, heard) {
   const score = a.length ? Math.round(dp[a.length][b.length] / a.length * 100) : 0;
   return { score, hit, words: target.split(/\s+/) };
 }
+const CAN_REC = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
+function recMime() {
+  if (!window.MediaRecorder || !MediaRecorder.isTypeSupported) return "";
+  for (const m of ["audio/webm", "audio/mp4", "audio/ogg"]) if (MediaRecorder.isTypeSupported(m)) return m;
+  return "";
+}
+function shadowTier() { return SR ? "score" : CAN_REC ? "record" : "rhythm"; }
+
 function qShadow(b, bar, item) {
-  b.innerHTML = bar +
+  const tier = shadowTier();
+  const head = bar +
     '<div class="qbox"><div class="qh">' + esc(item.sname) + " · 念这一句</div>" +
     '<div class="qz">' + esc(item.en) + "</div>" +
     '<div class="qh" style="color:var(--ink2)">' + esc(item.zh) + "</div></div>" +
     '<div class="btnrow" style="margin:0 0 4px"><button class="btn gh" data-say="' + esc(item.en) + '">' + ic("sound") + "听一遍</button>" +
-    '<button class="btn gh" data-slow="' + esc(item.en) + '">' + ic("slow") + "慢速</button></div>" +
+    '<button class="btn gh" data-slow="' + esc(item.en) + '">' + ic("slow") + "慢速</button></div>";
+  ({ score: shadowScore, record: shadowRecord, rhythm: shadowRhythm })[tier](b, head, item);
+}
+/* 自评收尾，三档共用 */
+function shadowSelfRate(item, tip) {
+  return '<div class="qh" style="text-align:center;margin-top:4px">' + tip + "</div>" +
+    '<div class="btnrow"><button class="btn gh" id="bad">还不顺</button>' +
+    '<button class="btn main" id="good">念顺了</button></div>';
+}
+function bindSelfRate(b, item) {
+  const g = b.querySelector("#good"), d = b.querySelector("#bad");
+  if (g) g.onclick = () => { answered(true, item.key); Q.i++; step(); };
+  if (d) d.onclick = () => { answered(false, item.key); say(item.en); setTimeout(() => { Q.i++; step(); }, 1500); };
+}
+
+/* A 档：语音识别打分 */
+function shadowScore(b, head, item) {
+  b.innerHTML = head +
     '<button class="mic" id="mic">' + ic("mic") + "</button>" +
     '<div class="qh" id="mst" style="text-align:center">点麦克风，念完自动判分</div>' +
     '<div class="fb" id="fb"></div>';
   const mic = b.querySelector("#mic"), mst = b.querySelector("#mst");
-  if (!SR) {
-    mic.classList.add("busy"); mic.innerHTML = ic("mic");
-    mst.innerHTML = "这个浏览器不支持语音识别<br>用 Chrome 或 Safari 打开可自动打分。<br>现在改成自评：念一遍，选下面。";
-    b.querySelector("#fb").className = "fb on ok";
-    b.querySelector("#fb").innerHTML = '<div class="btnrow" style="margin:0">' +
-      '<button class="btn gh" id="bad">不太顺</button><button class="btn main" id="good">念顺了</button></div>';
-    b.querySelector("#good").onclick = () => { answered(true, item.key); Q.i++; step(); };
-    b.querySelector("#bad").onclick = () => { answered(false, item.key); say(item.en); setTimeout(() => { Q.i++; step(); }, 1400); };
-    return;
-  }
   let rec = null, done = false;
   mic.onclick = () => {
     if (done) return;
@@ -1054,36 +1084,113 @@ function qShadow(b, bar, item) {
       let best = "", bs = -1;
       for (let i = 0; i < ev.results[0].length; i++) {
         const alt = ev.results[0][i].transcript;
-        const s = lcsMark(item.en, alt).score;
-        if (s > bs) { bs = s; best = alt; }
+        const sc = lcsMark(item.en, alt).score;
+        if (sc > bs) { bs = sc; best = alt; }
       }
-      finishShadow(best);
+      done = true;
+      const r = lcsMark(item.en, best), ok = r.score >= 70;
+      answered(ok, item.key); mst.textContent = "";
+      $("#fb").className = "fb on " + (ok ? "ok" : "no");
+      $("#fb").innerHTML =
+        '<div class="score" style="color:' + (ok ? "var(--acc)" : "var(--warm)") + '">' + r.score +
+        "<small>分 · " + (r.score >= 90 ? "很地道" : r.score >= 70 ? "能听懂" : "再来一遍") + "</small></div>" +
+        '<div class="heard">' + r.words.map((w, i) =>
+          '<span class="' + (r.hit[i] ? "g" : "m") + '">' + esc(w) + "</span>").join(" ") + "</div>" +
+        '<div class="zh" style="text-align:center;margin-top:8px;color:var(--ink3);font-size:12px">识别到：' + esc(best) + "</div>" +
+        '<div class="btnrow"><button class="btn gh" id="again">再念一次</button>' +
+        '<button class="btn main" id="nx">下一句' + ic("next") + "</button></div>";
+      bindNext();
+      b.querySelector("#again").onclick = () => { done = false; step(); };
     };
     rec.onerror = ev => {
       mic.classList.remove("rec"); mic.innerHTML = ic("mic"); rec = null;
-      mst.textContent = ev.error === "not-allowed" ? "麦克风被拒绝了，去浏览器设置里允许" : "没听清，再试一次";
+      mst.textContent = ev.error === "not-allowed" ? "麦克风被拒绝了，去浏览器设置里允许"
+        : ev.error === "network" ? "识别服务连不上（国内常见），改用录音对比更稳" : "没听清，再试一次";
     };
     rec.onend = () => { mic.classList.remove("rec"); mic.innerHTML = ic("mic"); rec = null; };
     try { rec.start(); } catch (e) { mst.textContent = "启动失败，再点一次"; rec = null; }
   };
-  function finishShadow(heard) {
-    done = true;
-    const r = lcsMark(item.en, heard);
-    const ok = r.score >= 70;
-    answered(ok, item.key);
-    mst.textContent = "";
-    const marked = r.words.map((w, i) => '<span class="' + (r.hit[i] ? "g" : "m") + '">' + esc(w) + "</span>").join(" ");
-    $("#fb").className = "fb on " + (ok ? "ok" : "no");
-    $("#fb").innerHTML =
-      '<div class="score" style="color:' + (ok ? "var(--acc)" : "var(--warm)") + '">' + r.score +
-      "<small>分 · " + (r.score >= 90 ? "很地道" : r.score >= 70 ? "能听懂" : "再来一遍") + "</small></div>" +
-      '<div class="heard">' + marked + "</div>" +
-      '<div class="zh" style="text-align:center;margin-top:8px;color:var(--ink3);font-size:12px">识别到：' + esc(heard) + "</div>" +
-      '<div class="btnrow"><button class="btn gh" id="again">再念一次</button>' +
-      '<button class="btn main" id="nx">下一句' + ic("next") + "</button></div>";
-    bindNext();
-    document.getElementById("again").onclick = () => { done = false; step(); };
-  }
+}
+
+/* B 档：录下自己的声音，跟原声 A/B 对比 —— 微信里主要靠这个 */
+function shadowRecord(b, head, item) {
+  b.innerHTML = head +
+    '<button class="mic" id="mic">' + ic("mic") + "</button>" +
+    '<div class="qh" id="mst" style="text-align:center">点一下开始录，念完再点一下停</div>' +
+    '<div class="fb" id="fb"></div>';
+  const mic = b.querySelector("#mic"), mst = b.querySelector("#mst");
+  let mr = null, chunks = [], url = null, stream = null;
+  const cleanup = () => { if (stream) stream.getTracks().forEach(t => t.stop()); stream = null; };
+  mic.onclick = async () => {
+    if (mr && mr.state === "recording") { try { mr.stop(); } catch (e) {} return; }
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (e) {
+      mic.classList.add("busy");
+      mst.innerHTML = "拿不到麦克风权限，改成节奏跟读";
+      return shadowRhythm(b, head, item);
+    }
+    const mime = recMime();
+    try { mr = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream); }
+    catch (e) { cleanup(); return shadowRhythm(b, head, item); }
+    chunks = [];
+    mr.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+    mr.onstop = () => {
+      cleanup();
+      mic.classList.remove("rec"); mic.innerHTML = ic("mic");
+      if (url) URL.revokeObjectURL(url);
+      url = URL.createObjectURL(new Blob(chunks, { type: mime || "audio/webm" }));
+      mst.textContent = "";
+      $("#fb").className = "fb on ok";
+      $("#fb").innerHTML = '<div class="t" style="justify-content:center">' + ic("check", "sm") + "对比一下</div>" +
+        '<div class="btnrow" style="margin-top:6px">' +
+          '<button class="btn gh" data-say="' + esc(item.en) + '">' + ic("sound") + "原声</button>" +
+          '<button class="btn main" id="mine">' + ic("play") + "我的</button></div>" +
+        '<div class="btnrow"><button class="btn gh" id="ab">' + ic("repeat") + "连着对比</button></div>" +
+        shadowSelfRate(item, "听出差别了吗？重音和连读最容易露馅");
+      const me = new Audio(url);
+      b.querySelector("#mine").onclick = () => { me.currentTime = 0; me.play().catch(() => {}); };
+      b.querySelector("#ab").onclick = () => {
+        say(item.en);
+        const wait = Math.max(1500, item.en.split(/\s+/).length * 430);
+        setTimeout(() => { me.currentTime = 0; me.play().catch(() => {}); }, wait);
+      };
+      bindSelfRate(b, item);
+    };
+    try { mr.start(); } catch (e) { cleanup(); return shadowRhythm(b, head, item); }
+    mic.classList.add("rec"); mic.innerHTML = ic("stop");
+    mst.textContent = "在录…… 念完点一下停";
+    setTimeout(() => { if (mr && mr.state === "recording") { try { mr.stop(); } catch (e) {} } }, 12000);
+  };
+}
+
+/* C 档：节奏跟读，不要任何权限，哪儿都能用 */
+function shadowRhythm(b, head, item) {
+  b.innerHTML = head +
+    '<button class="mic" id="mic">' + ic("play") + "</button>" +
+    '<div class="qh" id="mst" style="text-align:center">点一下：先放原声，留空档给你念，再放一遍</div>' +
+    '<div class="fb" id="fb"></div>';
+  const mic = b.querySelector("#mic"), mst = b.querySelector("#mst");
+  const gap = Math.max(1700, item.en.split(/\s+/).length * 460);
+  mic.onclick = () => {
+    mic.classList.add("rec");
+    mst.textContent = "听……";
+    say(item.en);
+    setTimeout(() => {
+      mst.textContent = "该你念了，跟着刚才的节奏";
+      setTimeout(() => {
+        mst.textContent = "再听一遍，对比一下";
+        say(item.en);
+        setTimeout(() => {
+          mic.classList.remove("rec");
+          mst.textContent = "";
+          $("#fb").className = "fb on ok";
+          $("#fb").innerHTML = shadowSelfRate(item, "跟上了吗？跟不上就用慢速再来一遍");
+          bindSelfRate(b, item);
+        }, gap);
+      }, gap + 300);
+    }, gap);
+  };
 }
 
 /* 结算 */
@@ -1186,6 +1293,13 @@ PAGES.soundcheck = function (box, arg) {
       '<span class="tx"><div class="nm">这句用哪个通道</div><div class="ds">' +
       (hasMp3 ? "预合成 mp3（微信可用）" : "系统语音合成（微信里可能没声音）") + "</div></span>" +
       '<span class="vl' + (hasMp3 ? "" : " red") + '">' + (hasMp3 ? "mp3" : "TTS") + "</span></div>" +
+    '<div class="mrow" style="cursor:default"><span class="ib">' + ic("mic", "sm") + '</span>' +
+      '<span class="tx"><div class="nm">跟读走哪档</div><div class="ds">' + ({
+        score: "语音识别可用，能自动逐词判分",
+        record: "没有语音识别，改用录音跟原声对比（微信正常是这档）",
+        rhythm: "既不能识别也不能录音，用节奏跟读"
+      })[shadowTier()] + "</div></span>" +
+      '<span class="vl">' + ({ score: "判分", record: "录音", rhythm: "节奏" })[shadowTier()] + "</span></div>" +
     '<div class="mrow" style="cursor:default"><span class="ib">' + ic("sliders", "sm") + '</span>' +
       '<span class="tx"><div class="nm">系统语音兜底</div><div class="ds">' +
       (VOICE ? esc(VOICE.name) : window.speechSynthesis ? "有引擎但没挑到英文声音" : "本浏览器不支持") + "</div></span></div>" +
@@ -1194,7 +1308,9 @@ PAGES.soundcheck = function (box, arg) {
       "1. 手机侧面的静音键关了吗（iPhone 静音时网页声音也没有）<br>" +
       "2. 音量调到一半以上<br>" +
       "3. 在微信里点右上角「···」→ 在浏览器中打开<br>" +
-      "4. 换 Safari 或 Chrome 打开同一个网址</div>";
+      "4. 换 Safari 或 Chrome 打开同一个网址<br><br>" +
+      "跟读想要自动判分，得用<b>桌面 Chrome</b> 或 <b>iPhone 上的 Safari</b>；" +
+      "微信和多数国产浏览器没有语音识别，会自动改成录音对比。</div>";
   box.querySelector("#t1").onclick = () => say(demo);
   box.querySelector("#t2").onclick = () => say(demo, true);
 };
