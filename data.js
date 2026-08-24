@@ -2070,4 +2070,19 @@ const TERMSETS = [
 ]}
 ];
 
-if (typeof module !== "undefined") module.exports = { GROUPS, SCENES, TERMSETS, PATTERNS };
+
+/* 「近义句式」形如 "Could I get ...（更随意）｜ May I have ...（更正式）"
+ * 按 ｜ 拆开：text 用于显示（保留中文注解），speak 用于朗读（只留英文）。
+ * ⚠️ 放在这里是因为 app.js 和 tools/gen_audio.py 都要用同一套规则——
+ *    以前各写一份，gen_audio 那份还因为写在模板字符串里被吃掉反斜杠，静默失效。 */
+function nearParts(near) {
+  return String(near).split("｜").map(x => x.trim()).filter(Boolean).map(part => {
+    const speak = part
+      .replace(/（[^）]*）/g, "").replace(/\([^)]*\)/g, "")
+      .replace(/\.\.\.\w*/g, "")
+      .replace(/\s+([?.!,])/g, "$1").replace(/\s+/g, " ").trim();
+    return { text: part, speak: /[a-zA-Z]/.test(speak) ? speak : "" };
+  });
+}
+
+if (typeof module !== "undefined") module.exports = { GROUPS, SCENES, TERMSETS, PATTERNS, nearParts };

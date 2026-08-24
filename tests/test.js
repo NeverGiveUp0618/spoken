@@ -1,7 +1,7 @@
 /* 内容源自检：node tests/test.js */
 const path = require("path");
 const fs = require("fs");
-const { GROUPS, SCENES, TERMSETS, PATTERNS } = require(path.join(__dirname, "..", "data.js"));
+const { GROUPS, SCENES, TERMSETS, PATTERNS, nearParts } = require(path.join(__dirname, "..", "data.js"));
 
 let pass = 0, fail = 0;
 const ok = (c, m) => c ? (pass++) : (fail++, console.log("  ✗ " + m));
@@ -171,6 +171,19 @@ SCENES.forEach(s => s.lines.forEach((l, i) => {
   en.forEach(e => ok(!/[\u4e00-\u9fa5]/.test(e), at + " 对方回答英文里混入中文：" + e));
 }));
 ok(nReply > 100, "对方回答条数太少");
+
+sec("界面上的英文都要能点读");
+// 曾经漏掉两处：「换个说法」有音频却没给喇叭按钮；「近义句式」压根没生成音频
+const appSrc = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8");
+ok(/data-say="' \+ esc\(l\.alt\)/.test(appSrc) || /esc\(l\.alt\)[^]{0,200}data-say/.test(appSrc),
+   "「换个说法」没有朗读按钮 —— 有音频也听不到");
+ok(/nearParts\(p\.near\)/.test(appSrc), "「近义句式」没有走 nearParts 渲染，英文点不了");
+ok(!/function nearParts/.test(appSrc),
+   "app.js 自己又写了一份 nearParts —— 必须只用 data.js 里那份，否则规则会漂移");
+const genSrc = fs.readFileSync(path.join(__dirname, "..", "tools", "gen_audio.py"), "utf8");
+ok(/nearParts\(/.test(genSrc), "gen_audio.py 没有走 nearParts，近义句式不会被合成");
+ok(!/\\\\\(\[\^\)\]/.test(genSrc),
+   "gen_audio.py 的模板字符串里又出现了裸反斜杠正则 —— 会被吃掉导致静默失效");
 
 sec("发音覆盖（微信里全靠这些 mp3）");
 const audDir = path.join(__dirname, "..", "audio");

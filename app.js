@@ -249,7 +249,10 @@ function patCard(p, opt) {
         '<button class="pfill" data-fill="' + id + '" data-fi="' + i + '">' + esc(f[0]) +
         '<span class="zh">' + esc(f[1]) + "</span></button>").join("") + "</div>" +
       (p.where ? '<div class="pmeta"><b>常出现在</b> ' + esc(p.where) + "</div>" : "") +
-      (p.near ? '<div class="pmeta"><b>近义句式</b> ' + esc(p.near) + "</div>" : "") +
+      (p.near ? '<div class="pmeta"><b>近义句式</b>' + nearParts(p.near).map(n =>
+        '<div class="nearline">' + esc(n.text) +
+        (n.speak ? ' <button class="iconbtn tiny" data-say="' + esc(n.speak) + '">' + ic("sound", "sm") + "</button>" : "") +
+        "</div>").join("") + "</div>" : "") +
     "</div></div>";
 }
 /* 折叠开合：点卡片头部展开，点里面的收藏/喇叭按钮不触发 */
@@ -357,9 +360,11 @@ function lineCard(l, idx) {
       '<div class="r"><span class="k">什么时候用</span><span class="v">' + esc(l.tip) + "</span></div>" +
       (l.reply ? '<div class="r"><span class="k">对方会说</span><span class="v"><em>' + esc(l.reply) + "</em>" +
         (l.rz ? '<br><span style="color:var(--ink3);font-size:12px">' + esc(l.rz) + "</span>" : "") +
-        (/[a-zA-Z]/.test(l.reply) ? ' <button class="iconbtn" style="width:24px;height:24px;display:inline-flex;vertical-align:middle" data-say="' +
+        (/[a-zA-Z]/.test(l.reply) ? ' <button class="iconbtn tiny" data-say="' +
           esc(l.reply.split(" / ")[0]) + '">' + ic("sound", "sm") + "</button>" : "") + "</span></div>" : "") +
-      (l.alt ? '<div class="r"><span class="k">换个说法</span><span class="v"><em>' + esc(l.alt) + "</em></span></div>" : "") +
+      (l.alt ? '<div class="r"><span class="k">换个说法</span><span class="v"><em>' + esc(l.alt) + "</em>" +
+        (/[a-zA-Z]/.test(l.alt) ? ' <button class="iconbtn tiny" data-say="' + esc(l.alt) + '">' +
+          ic("sound", "sm") + "</button>" : "") + "</span></div>" : "") +
     "</div>" +
     '<button class="togmore" data-more="m' + idx + '">' + ic("next") + "用法</button>" +
     "</div>";

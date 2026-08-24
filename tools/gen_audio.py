@@ -44,6 +44,10 @@ const out=vm.runInContext(`(function(){
     (sc.pat||[]).forEach(p=>p.fills.forEach(f=>s.add(p.pat.replace("{}",f[0]))));
   });
   PATTERNS.forEach(p=>p.fills.forEach(f=>s.add(p.pat.replace("{}",f[0]))));
+  // 「近义句式」的英文片段；nearParts 定义在 data.js，与 app.js 共用同一套规则
+  const addNear = p => { if(p.near) nearParts(p.near).forEach(n=>{ if(n.speak) s.add(n.speak); }); };
+  PATTERNS.forEach(addNear);
+  SCENES.forEach(sc=>(sc.pat||[]).forEach(addNear));
   TERMSETS.forEach(t=>t.terms.forEach(x=>{ s.add(x.en); s.add(x.def); }));
   return [...s].filter(x=>x&&/[a-zA-Z]/.test(x)&&x!=="—");
 })()`,ctx);
