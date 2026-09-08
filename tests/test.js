@@ -211,7 +211,12 @@ if (AUDIO_MAP) {
   ok(/AUDIO_MAP/.test(app) && /SILENT_WAV/.test(app), "app.js 没走 mp3 通道或缺静音解锁");
   ok(/WeixinJSBridgeReady/.test(app), "app.js 缺微信 JSBridge 解锁");
   const sw = fs.readFileSync(path.join(__dirname, "..", "sw.js"), "utf8");
-  ok(!/\.mp3/.test(sw), "sw.js 不该预缓存 mp3（近千个文件会拖垮首屏）");
+  // ⚠️ 本意是「mp3 不进预缓存」，原来写成整个 sw.js 里不许出现 .mp3 三个字——
+  //    2026-09-08 给 mp3 单开缓存优先分支时被误判成失败。改成只查 CORE 数组本身。
+  const core = (sw.match(/const CORE = \[[^\]]*\]/) || [""])[0];
+  ok(core !== "" && !/\.mp3/.test(core), "sw.js 的 CORE 不该预缓存 mp3（近千个文件会拖垮首屏）");
+  ok(/netFirstButDontHang/.test(sw), "sw.js 必须网络优先：缓存优先会让别人打开时长期停在旧版本");
+  ok(/isAudio/.test(sw) && /caches\.open\(CACHE\)/.test(sw), "sw.js 应给 mp3 保留缓存优先分支，否则跟读每次都重新下载");
 }
 
 sec("引用完整性（app.js / index.html）");
