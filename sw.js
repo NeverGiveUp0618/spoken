@@ -1,4 +1,4 @@
-const CACHE = "spoken-v12-netfirst";
+const CACHE = "spoken-v15-restore";
 // 音频文件不进预缓存：近千个 mp3 十几兆，首屏全拉会卡；改成播放过的自动进缓存
 const CORE = ["./", "./index.html", "./data.js?v=11", "./app.js?v=11", "./manifest.json", "./audio/manifest.js?v=6"];
 
